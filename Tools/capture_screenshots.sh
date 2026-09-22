@@ -121,7 +121,7 @@ wait_for_ready() {
     local logfile="$1"
     local waited=0
     while [ "$waited" -lt "$READY_TIMEOUT" ]; do
-        if grep -q "PARKLIFE_SCREENSHOT_READY" "$logfile" 2>/dev/null; then
+        if grep -q "PARKLIFE_SCENE_DRAWN" "$logfile" 2>/dev/null; then
             echo "  ready after ${waited}s"
             # One more beat so SpriteKit has drawn the frame behind the marker.
             sleep 3
@@ -228,7 +228,7 @@ shot "01-ipad-park-and-bookings.png" "${IPAD[@]}" -- \
     -parklife-screenshot -parklife-warmup-days 40 -parklife-panel reservations \
     -parklife-select cottage -parklife-zoom 0.55
 
-shot "02-ipad-overlay-and-objectives.png" "${IPAD[@]}" -- \
+shot "02-ipad-park-panel.png" "${IPAD[@]}" -- \
     -parklife-screenshot -parklife-warmup-days 40 -parklife-panel park \
     -parklife-overlay congestion -parklife-zoom 0.5
 

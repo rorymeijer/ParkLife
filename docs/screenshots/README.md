@@ -11,8 +11,8 @@ all output from `ParkLifeCore`, not plausible-looking values.
 | File | Device | Shows |
 |---|---|---|
 | `01-ipad-park-and-bookings.png` | iPad Pro 13-inch | Park view, HUD, cottage inspector, bookings panel beside the park |
-| `02-ipad-overlay-and-objectives.png` | iPad Pro 13-inch | Crowding overlay with legend, park ratings and scenario objectives |
-| `03-iphone-build-mode.png` | iPhone 17 Pro | Build mode with a placement preview, build bar and navigation |
+| `02-ipad-park-panel.png` | iPad Pro 13-inch | Park panel: overview, the six park ratings, and the map overlay picker |
+| `03-iphone-build-mode.png` | iPhone 17 Pro | Build mode: the build bar with rotate, undo and redo for the selected cottage |
 | `04-iphone-finances.png` | iPhone 17 Pro | Finances as a contextual sheet, with the profit trend |
 | `05-iphone-guest-inspector.png` | iPhone 17 Pro | Scenery overlay and a selected guest with needs and their latest thought |
 

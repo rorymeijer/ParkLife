@@ -11,7 +11,7 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const shots = [
   { screen: 'ipad-bookings',   file: '01-ipad-park-and-bookings.png', width: 1366, height: 1024 },
-  { screen: 'ipad-park',       file: '02-ipad-overlay-and-objectives.png', width: 1366, height: 1024 },
+  { screen: 'ipad-park',       file: '02-ipad-park-panel.png', width: 1366, height: 1024 },
   { screen: 'iphone-build',    file: '03-iphone-build-mode.png',      width: 402,  height: 874 },
   { screen: 'iphone-finances', file: '04-iphone-finances.png',        width: 402,  height: 874 },
   { screen: 'iphone-guest',    file: '05-iphone-guest-inspector.png', width: 402,  height: 874 }

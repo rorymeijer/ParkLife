@@ -85,13 +85,11 @@ struct RootView: View {
                 activePanel = panel
             }
             if ScreenshotOptions.isActive {
-                // Emitted from the view, not the session. The session is ready as soon as the
-                // warm-up finishes, but the window is still showing the launch screen at that
-                // point — which is exactly the blank white image the first capture run produced.
-                // Two runloop hops put this after the park and any presented panel have drawn.
+                // The SwiftUI chrome is up. This is not the capture signal on its own — the park
+                // itself is drawn by SpriteKit, which reports separately once it has a frame.
                 DispatchQueue.main.async {
                     DispatchQueue.main.async {
-                        print("PARKLIFE_SCREENSHOT_READY")
+                        print("PARKLIFE_CHROME_READY")
                         fflush(stdout)
                     }
                 }
