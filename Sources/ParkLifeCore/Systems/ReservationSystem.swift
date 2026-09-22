@@ -55,9 +55,10 @@ public enum ReservationSystem: SimulationSystem {
 
     private static func takeDeposit(reservation: Reservation, world: inout World) {
         let deposit = reservation.price.scaled(by: depositFraction)
+        let now = world.tick
         world.reservations.modify(reservation.id) { stored in
             stored.status = .paid
-            stored.paidAtTick = world.tick
+            stored.paidAtTick = now
         }
         world.earn(deposit, category: .accommodation, reference: reservation.unitBuildingID?.raw)
     }
