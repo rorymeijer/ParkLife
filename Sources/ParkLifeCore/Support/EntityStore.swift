@@ -110,7 +110,10 @@ extension EntityStore: Codable where Element: Codable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        // Encode in id order so the payload (and therefore the save checksum) is canonical.
-        try container.encode(items.sorted { $0.id.raw < $1.id.raw })
+        // Storage order, deliberately *not* id order. Where entities sit in the array is itself
+        // deterministic simulation state, and floating-point aggregates over `items` — mean guest
+        // happiness, mean cleanliness — depend on summation order. Sorting here made a reloaded
+        // game drift away from the one that was saved, which `DeterminismTests` caught.
+        try container.encode(items)
     }
 }

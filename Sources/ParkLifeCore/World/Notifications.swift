@@ -82,12 +82,21 @@ public struct NotificationCentre: Codable {
         cooldownMinutes: Int = NotificationCentre.defaultCooldownMinutes,
         allocator: inout IDAllocator
     ) -> Bool {
-        if let last = lastPostedTick[groupingKey], tick - last < cooldownMinutes {
-            if let index = items.lastIndex(where: { $0.groupingKey == groupingKey }) {
-                items[index].occurrences += 1
-                items[index].tick = tick
+        // Aggregate onto the existing row for this key whenever one is still in the tray, whatever
+        // the cooldown says. A condition that persists for six weeks — "you are short of staff" —
+        // is one situation the player should see once with a count, not forty-five separate rows.
+        // The cooldown governs only whether it is raised as *unread* again.
+        if let index = items.lastIndex(where: { $0.groupingKey == groupingKey }) {
+            items[index].occurrences += 1
+            items[index].tick = tick
+            let last = lastPostedTick[groupingKey] ?? tick
+            if tick - last >= cooldownMinutes {
                 items[index].isRead = false
+                lastPostedTick[groupingKey] = tick
             }
+            return false
+        }
+        if let last = lastPostedTick[groupingKey], tick - last < cooldownMinutes {
             return false
         }
         lastPostedTick[groupingKey] = tick
