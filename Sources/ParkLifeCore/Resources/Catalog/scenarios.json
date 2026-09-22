@@ -1,0 +1,115 @@
+[
+  {
+    "id": "career-nl-1",
+    "nameKey": "scenario.zandheuvelStart",
+    "summaryKey": "scenario.zandheuvelStart.summary",
+    "mapID": "nl-zandheuvel",
+    "startingCash": 40000000,
+    "startDate": {
+      "year": 2026,
+      "month": 3,
+      "day": 2,
+      "hour": 8
+    },
+    "difficulty": "normal",
+    "objectives": [
+      {
+        "id": "occupancy70",
+        "titleKey": "objective.reachOccupancy70",
+        "metric": "occupancyPercent",
+        "comparison": "atLeast",
+        "target": 70,
+        "sustainedDays": 30
+      },
+      {
+        "id": "satisfaction75",
+        "titleKey": "objective.keepGuestsHappy",
+        "metric": "guestSatisfaction",
+        "comparison": "atLeast",
+        "target": 0.75,
+        "sustainedDays": 30
+      },
+      {
+        "id": "revenue500k",
+        "titleKey": "objective.annualRevenue500k",
+        "metric": "annualRevenue",
+        "comparison": "atLeast",
+        "target": 500000,
+        "sustainedDays": 0
+      }
+    ],
+    "deadlineDays": 730,
+    "prebuilt": [
+      {
+        "definitionID": "park_entrance",
+        "x": 47,
+        "y": 92,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "id": "sandbox-zandheuvel",
+    "nameKey": "scenario.sandbox",
+    "summaryKey": "scenario.sandbox.summary",
+    "mapID": "nl-zandheuvel",
+    "startingCash": 500000000,
+    "startDate": {
+      "year": 2026,
+      "month": 4,
+      "day": 1,
+      "hour": 8
+    },
+    "difficulty": "relaxed",
+    "objectives": [],
+    "prebuilt": [
+      {
+        "definitionID": "park_entrance",
+        "x": 47,
+        "y": 92,
+        "rotation": 0
+      }
+    ]
+  },
+  {
+    "id": "turnaround-meerzicht",
+    "nameKey": "scenario.turnaround",
+    "summaryKey": "scenario.turnaround.summary",
+    "mapID": "nl-meerzicht",
+    "startingCash": 12000000,
+    "startDate": {
+      "year": 2027,
+      "month": 9,
+      "day": 1,
+      "hour": 8
+    },
+    "difficulty": "hard",
+    "objectives": [
+      {
+        "id": "reputation",
+        "titleKey": "objective.restoreReputation",
+        "metric": "reputation",
+        "comparison": "atLeast",
+        "target": 0.7,
+        "sustainedDays": 60
+      },
+      {
+        "id": "profitMonths",
+        "titleKey": "objective.profitableSixMonths",
+        "metric": "consecutiveProfitableMonths",
+        "comparison": "atLeast",
+        "target": 6,
+        "sustainedDays": 0
+      }
+    ],
+    "deadlineDays": 548,
+    "prebuilt": [
+      {
+        "definitionID": "park_entrance",
+        "x": 9,
+        "y": 55,
+        "rotation": 0
+      }
+    ]
+  }
+]

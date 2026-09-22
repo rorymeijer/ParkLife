@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ParkLife</title>
+<style>
+  :root {
+    --bg: #f2f3f5;
+    --panel: rgba(255,255,255,0.86);
+    --panel-solid: #ffffff;
+    --stroke: rgba(0,0,0,0.10);
+    --text: #16181d;
+    --muted: #6b7280;
+    --accent: #2d985f;
+    --warn: #e0863a;
+    --bad: #cf4b45;
+    --good: #2f9e5e;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    overflow: hidden;
+  }
+  #app { display: flex; height: 100vh; width: 100vw; }
+  #stage { position: relative; flex: 1; overflow: hidden; background: #5c6b57; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .chrome {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    padding: 10px 12px 10px; pointer-events: none; gap: 8px;
+  }
+  .card {
+    background: var(--panel); backdrop-filter: blur(18px);
+    border: 1px solid var(--stroke); border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(15,23,42,0.10);
+  }
+
+  /* ---- HUD ---- */
+  .hud { display: flex; align-items: center; gap: 12px; padding: 9px 14px; }
+  .stat { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .stat .v { font: 600 15px/1.15 ui-rounded, -apple-system, sans-serif; display: flex; gap: 5px; align-items: center; white-space: nowrap; }
+  .stat .l { font-size: 10px; color: var(--muted); letter-spacing: .02em; }
+  .sep { width: 1px; height: 26px; background: var(--stroke); }
+  .speeds { margin-left: auto; display: flex; gap: 5px; }
+  .speed {
+    min-width: 34px; height: 30px; border-radius: 8px; border: 1px solid var(--stroke);
+    background: rgba(255,255,255,0.7); display: grid; place-items: center;
+    font: 700 12px/1 ui-rounded, sans-serif; color: var(--muted);
+  }
+  .speed.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .subhud {
+    align-self: flex-start; display: flex; gap: 10px; align-items: center;
+    padding: 5px 12px; border-radius: 999px; font-size: 11.5px; color: #333;
+  }
+  .subhud .warn { color: var(--warn); font-weight: 600; }
+
+  /* ---- bottom ---- */
+  .bottom { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+  .inspector { padding: 11px 13px; display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
+  .inspector h3 { margin: 0; font-size: 14.5px; }
+  .inspector .sub { font-size: 11.5px; color: var(--muted); }
+  .meter { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .meter .lbl { width: 86px; color: var(--muted); }
+  .bar { flex: 1; height: 6px; border-radius: 3px; background: rgba(0,0,0,0.08); overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 3px; }
+  .meter .pct { width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+  .kv { display: flex; justify-content: space-between; font-size: 12px; }
+  .kv span:last-child { font-variant-numeric: tabular-nums; }
+
+  .buildbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; }
+  .buildbar .name { font-weight: 600; font-size: 13.5px; }
+  .pill {
+    padding: 6px 11px; border-radius: 9px; border: 1px solid var(--stroke);
+    background: rgba(255,255,255,0.75); font-size: 12px; font-weight: 500;
+  }
+  .pill.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pill.danger { background: #fdeceb; border-color: #f3c7c4; color: var(--bad); }
+
+  .nav { display: flex; gap: 7px; overflow: hidden; }
+  .nav .item {
+    flex: 0 0 auto; width: 64px; height: 52px; border-radius: 11px;
+    border: 1px solid var(--stroke); background: var(--panel);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    font-size: 9.5px; color: var(--muted); position: relative;
+  }
+  .nav .item.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .nav .item .ic { font-size: 16px; line-height: 1; }
+  .nav .badge {
+    position: absolute; top: 4px; right: 6px; min-width: 15px; height: 15px; padding: 0 3px;
+    border-radius: 999px; background: var(--bad); color: #fff;
+    font: 700 9px/15px sans-serif; text-align: center;
+  }
+
+  /* ---- side panel ---- */
+  #panel {
+    width: 380px; flex: 0 0 380px; background: var(--panel-solid);
+    border-left: 1px solid var(--stroke); overflow: hidden; display: none;
+    flex-direction: column;
+  }
+  #panel.show { display: flex; }
+  .panel-head {
+    padding: 13px 16px; border-bottom: 1px solid var(--stroke);
+    font: 600 16px/1.2 -apple-system, sans-serif; display: flex; align-items: center; gap: 8px;
+  }
+  .panel-body { overflow: auto; padding: 4px 0 20px; }
+  .sect { padding: 14px 16px 6px; font: 600 11px/1 -apple-system, sans-serif; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .row {
+    padding: 9px 16px; border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex; align-items: center; gap: 10px; font-size: 13px;
+  }
+  .row .grow { flex: 1; min-width: 0; }
+  .row .t { font-weight: 500; }
+  .row .s { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .row .val { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+  .cal { display: flex; flex-direction: column; gap: 3px; padding: 6px 16px 12px; }
+  .cal .wk { display: flex; gap: 3px; }
+  .cal .d { flex: 1; height: 17px; border-radius: 3px; display: grid; place-items: center; color: #fff; font: 700 8px/1 sans-serif; }
+  .spark { padding: 6px 16px 12px; }
+  .stars { color: #e8b21f; letter-spacing: 1px; }
+
+  /* ---- iPhone sheet ---- */
+  #sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 62%;
+    background: var(--panel-solid); border-radius: 18px 18px 0 0;
+    border-top: 1px solid var(--stroke); box-shadow: 0 -8px 30px rgba(15,23,42,0.18);
+    display: none; flex-direction: column; overflow: hidden;
+  }
+  #sheet.show { display: flex; }
+  #sheet .grab { width: 36px; height: 5px; border-radius: 3px; background: rgba(0,0,0,0.18); margin: 8px auto 2px; }
+  .legend {
+    position: absolute; right: 12px; top: 96px; padding: 9px 11px; font-size: 11px;
+    display: none; flex-direction: column; gap: 5px;
+  }
+  .legend.show { display: flex; }
+  .legend .sw { display: flex; align-items: center; gap: 6px; }
+  .legend .sw i { width: 12px; height: 12px; border-radius: 3px; display: block; }
+  body.compact .hud { padding: 8px 10px; gap: 8px; }
+  body.compact .stat .v { font-size: 13.5px; }
+  body.compact .speed { min-width: 28px; height: 27px; font-size: 11px; }
+  body.compact .subhud { font-size: 10.5px; gap: 8px; }
+  body.compact .nav .item { width: 58px; height: 48px; font-size: 9px; }
+  body.compact .inspector { max-width: none; }
+  .watermark {
+    position: absolute; right: 12px; bottom: 6px; font-size: 9px;
+    color: rgba(255,255,255,0.8); text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="park"></canvas>
+    <div class="chrome">
+      <div class="card hud" id="hud"></div>
+      <div class="card subhud" id="subhud"></div>
+      <div class="card legend" id="legend"></div>
+      <div class="bottom">
+        <div class="card inspector" id="inspector"></div>
+        <div class="card buildbar" id="buildbar"></div>
+        <div class="nav" id="nav"></div>
+      </div>
+    </div>
+    <div id="sheet"></div>
+    <div class="watermark">ParkLife — design mockup, rendered from the shipped content catalog</div>
+  </div>
+  <div id="panel"></div>
+</div>
+
+<script>
+const CATALOG = /*__CATALOG__*/null;
+
+/* ------------------------------------------------------------------ *
+ * SplitMix64 — a faithful port of Sources/ParkLifeCore/Support/SeededRandom.swift,
+ * so the terrain below is the terrain the game generates from the same seed.
+ * ------------------------------------------------------------------ */
+const M64 = (1n << 64n) - 1n;
+class Rng {
+  constructor(seed) { this.s = BigInt(seed) & M64; }
+  next() {
+    this.s = (this.s + 0x9E3779B97F4A7C15n) & M64;
+    let z = this.s;
+    z = ((z ^ (z >> 30n)) * 0xBF58476D1CE4E5B9n) & M64;
+    z = ((z ^ (z >> 27n)) * 0x94D049BB133111EBn) & M64;
+    return (z ^ (z >> 31n)) & M64;
+  }
+  unit() { return Number(this.next() >> 11n) / 9007199254740992; }
+  double(lo, hi) { return lo + this.unit() * (hi - lo); }
+  chance(p) { return this.unit() < p; }
+}
+
+/* ---------------- MapGenerator port ---------------- */
+const GRASS = 0, SAND = 1, WATER = 2, FOREST = 3, ROCK = 4, PAVED = 5;
+const S_NONE = 0, S_FOOT = 1, S_CYCLE = 2, S_PLAZA = 3, S_ROAD = 4, S_BRIDGE = 5;
+
+function generateMap(map) {
+  const W = map.width, H = map.height;
+  const terrain = new Uint8Array(W * H).fill(GRASS);
+  const elevation = new Int8Array(W * H);
+  const surface = new Uint8Array(W * H);
+  const building = new Int32Array(W * H).fill(-1);
+  const rng = new Rng(map.generationSeed);
+
+  const hills = [];
+  for (let i = 0; i < 5; i++) {
+    hills.push({
+      x: rng.double(0, W), y: rng.double(0, H),
+      h: rng.double(0.8, 3.4), r: rng.double(12, 30)
+    });
+  }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    let e = 0;
+    for (const hill of hills) {
+      const dx = x - hill.x, dy = y - hill.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < hill.r) { const f = 1 - d / hill.r; e += hill.h * f * f; }
+    }
+    elevation[y * W + x] = Math.max(-8, Math.min(12, Math.round(e)));
+  }
+
+  for (const f of map.water) {
+    const cx = f.x + f.width / 2, cy = f.y + f.height / 2;
+    const rx = f.width / 2, ry = f.height / 2;
+    for (let y = Math.max(0, f.y - 2); y < Math.min(H, f.y + f.height + 2); y++) {
+      for (let x = Math.max(0, f.x - 2); x < Math.min(W, f.x + f.width + 2); x++) {
+        const nx = (x + 0.5 - cx) / rx, ny = (y + 0.5 - cy) / ry;
+        const d = nx * nx + ny * ny;
+        const wobble = rng.double(-0.06, 0.06);
+        const i = y * W + x;
+        if (d + wobble < 1.0) { terrain[i] = WATER; elevation[i] = 0; }
+        else if (d + wobble < 1.22) { terrain[i] = SAND; elevation[i] = 0; }
+      }
+    }
+  }
+
+  for (const patch of map.forests) {
+    for (let y = Math.max(0, patch.y - patch.radius); y < Math.min(H, patch.y + patch.radius + 1); y++) {
+      for (let x = Math.max(0, patch.x - patch.radius); x < Math.min(W, patch.x + patch.radius + 1); x++) {
+        const i = y * W + x;
+        if (terrain[i] !== GRASS) continue;
+        const dx = x - patch.x, dy = y - patch.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d > patch.radius) continue;
+        if (rng.chance(patch.density * (1 - d / patch.radius))) terrain[i] = FOREST;
+      }
+    }
+  }
+
+  for (let y = map.entranceY - 4; y <= map.entranceY + 4; y++) {
+    for (let x = map.entranceX - 4; x <= map.entranceX + 4; x++) {
+      if (x < 0 || y < 0 || x >= W || y >= H) continue;
+      const i = y * W + x;
+      if (terrain[i] === FOREST) terrain[i] = GRASS;
+      elevation[i] = 0;
+    }
+  }
+  return { W, H, terrain, elevation, surface, building };
+}
+
+/* ---------------- demo park layout (mirrors GameSetup.makeDemoPark) ---------------- */
+const defs = {}; for (const b of CATALOG.buildings) defs[b.id] = b;
+
+function buildDemoPark(world, map) {
+  const EX = map.entranceX, EY = map.entranceY;
+  const rows = [EY - 10, EY - 19, EY - 28, EY - 37, EY - 46];
+  const placed = [];
+  const setSurface = (x, y, s) => {
+    if (x < 0 || y < 0 || x >= world.W || y >= world.H) return;
+    const i = y * world.W + x;
+    if (world.building[i] >= 0) return;
+    const t = world.terrain[i];
+    if (t === WATER || t === ROCK) return;
+    world.surface[i] = s;
+  };
+
+  for (let y = EY; y >= rows[4]; y--) setSurface(EX, y, S_FOOT);
+  for (const r of rows) for (let x = EX - 18; x <= EX + 18; x++) setSurface(x, r, S_FOOT);
+  for (let y = EY - 6; y <= EY - 2; y++) for (let x = EX - 3; x <= EX + 3; x++) setSurface(x, y, S_PLAZA);
+
+  function place(id, origin, rotation) {
+    const d = defs[id]; if (!d) return null;
+    const w = d.footprintWidth, h = d.footprintHeight;
+    for (let y = origin.y; y < origin.y + h; y++) for (let x = origin.x; x < origin.x + w; x++) {
+      if (x < 0 || y < 0 || x >= world.W || y >= world.H) return null;
+      const i = y * world.W + x;
+      if (world.building[i] >= 0 || world.surface[i] !== S_NONE) return null;
+      const t = world.terrain[i];
+      if (t === WATER || t === ROCK) return null;
+    }
+    const index = placed.length;
+    for (let y = origin.y; y < origin.y + h; y++) for (let x = origin.x; x < origin.x + w; x++) {
+      world.building[y * world.W + x] = index;
+    }
+    const entry = { id, def: d, origin, rotation, w, h };
+    placed.push(entry);
+    return entry;
+  }
+
+  function placeAtDoor(id, doorX, rowY, side) {
+    const d = defs[id]; if (!d || !d.entranceOffsets.length) return null;
+    const off = d.entranceOffsets[0];
+    const w = d.footprintWidth, h = d.footprintHeight;
+    const rot = side === 'north' ? 0 : 2;
+    const rx = rot === 0 ? off.x : (w - 1 - off.x);
+    const ry = rot === 0 ? off.y : (h - 1 - off.y);
+    const doorY = side === 'north' ? rowY - 1 : rowY + 1;
+    return place(id, { x: doorX - rx, y: doorY - ry }, rot);
+  }
+
+  place('park_entrance', { x: EX - 1, y: EY + 1 }, 0);
+  placeAtDoor('reception', EX - 7, rows[0], 'north');
+  placeAtDoor('supermarket', EX + 8, rows[0], 'north');
+  placeAtDoor('toilet_block', EX - 4, rows[1], 'south');
+  placeAtDoor('souvenir_shop', EX + 4, rows[1], 'south');
+  placeAtDoor('restaurant_family', EX - 11, rows[1], 'north');
+  placeAtDoor('cafe_terrace', EX + 5, rows[1], 'north');
+  placeAtDoor('pool_indoor', EX + 9, rows[2], 'north');
+  placeAtDoor('snack_bar', EX - 12, rows[2], 'north');
+  placeAtDoor('playground', EX - 9, rows[3], 'south');
+  placeAtDoor('minigolf', EX + 10, rows[4], 'south');
+
+  const cottages = ['cottage_comfort_4', 'cottage_comfort_6', 'cottage_basic_4',
+                    'cottage_comfort_4', 'cottage_comfort_6', 'cottage_basic_4'];
+  let n = 0;
+  for (const rowY of [rows[3], rows[4]]) {
+    for (const off of [-16, -11, -6, 6, 11, 16]) {
+      placeAtDoor(cottages[n % cottages.length], EX + off, rowY, 'north'); n++;
+    }
+  }
+  for (const off of [-16, -11, -6]) {
+    placeAtDoor(cottages[n % cottages.length], EX + off, rows[4], 'south'); n++;
+  }
+  for (const rowY of rows) {
+    place('tree_oak', { x: EX - 2, y: rowY - 1 }, 0);
+    place('tree_pine', { x: EX + 2, y: rowY - 1 }, 0);
+    place('bench', { x: EX + 1, y: rowY - 1 }, 0);
+  }
+  return { placed, rows };
+}
+
+/* ---------------- isometric rendering (mirrors IsometricProjection + PlaceholderArt) ------- */
+const TW = 64, TH = 32, ESTEP = 16;
+const project = (x, y, e = 0) => ({ x: (x - y) * (TW / 2), y: (x + y) * (TH / 2) - e * ESTEP });
+
+const TERRAIN_RGB = {
+  [GRASS]: [133, 184, 97], [SAND]: [230, 214, 158], [WATER]: [87, 153, 204],
+  [FOREST]: [71, 133, 77], [ROCK]: [148, 145, 140], [PAVED]: [199, 196, 191]
+};
+const SURFACE_RGB = {
+  [S_FOOT]: [217, 201, 168], [S_CYCLE]: [189, 173, 153], [S_PLAZA]: [224, 219, 209],
+  [S_ROAD]: [107, 107, 112], [S_BRIDGE]: [168, 128, 84]
+};
+function hsv(h, s, v) {
+  h = ((h % 1) + 1) % 1;
+  const i = Math.floor(h * 6), f = h * 6 - i;
+  const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+  const [r, g, b] = [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i % 6];
+  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+}
+const CAT_HSB = {
+  accommodation: [0.08, 0.55, 0.85], food: [0.02, 0.60, 0.88], retail: [0.12, 0.55, 0.90],
+  activity: [0.15, 0.62, 0.86], pool: [0.55, 0.55, 0.88], service: [0.60, 0.35, 0.80],
+  staff: [0.70, 0.30, 0.72], decoration: [0.30, 0.55, 0.70], infrastructure: [0.09, 0.30, 0.70],
+  path: [0.10, 0.20, 0.85]
+};
+const CAT_HEIGHT = {
+  accommodation: 34, food: 30, retail: 30, pool: 40, service: 28, staff: 28,
+  activity: 20, infrastructure: 26, decoration: 16, path: 2
+};
+function fnv1a(str) {
+  let h = 0xcbf29ce484222325n;
+  for (const ch of new TextEncoder().encode(str)) {
+    h ^= BigInt(ch); h = (h * 0x100000001b3n) & M64;
+  }
+  return h;
+}
+const rgbStr = (c, m = 1) => `rgb(${Math.round(c[0]*m)},${Math.round(c[1]*m)},${Math.round(c[2]*m)})`;
+
+function drawWorld(canvas, world, park, opts) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 2;
+  canvas.width = canvas.clientWidth * dpr;
+  canvas.height = canvas.clientHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+  const zoom = opts.zoom;
+  const centre = project(opts.centre.x, opts.centre.y);
+  const ox = canvas.clientWidth / 2 - centre.x * zoom;
+  const oy = canvas.clientHeight * opts.verticalAnchor - centre.y * zoom;
+  const S = (p) => ({ x: ox + p.x * zoom, y: oy + p.y * zoom });
+
+  // sky/ground backdrop
+  ctx.fillStyle = '#5c6b57';
+  ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+  const tiles = [];
+  for (let y = 0; y < world.H; y++) for (let x = 0; x < world.W; x++) {
+    const i = y * world.W + x;
+    const p = S(project(x, y, world.elevation[i]));
+    if (p.x < -TW * zoom || p.x > canvas.clientWidth + TW * zoom) continue;
+    if (p.y < -TH * zoom * 6 || p.y > canvas.clientHeight + TH * zoom * 4) continue;
+    tiles.push({ x, y, i, p });
+  }
+  tiles.sort((a, b) => (a.x + a.y) - (b.x + b.y));
+
+  const elevationAt = (x, y) =>
+    (x < 0 || y < 0 || x >= world.W || y >= world.H) ? 0 : world.elevation[y * world.W + x];
+
+  for (const t of tiles) {
+    const surf = world.surface[t.i];
+    const base = surf !== S_NONE ? SURFACE_RGB[surf] : TERRAIN_RGB[world.terrain[t.i]];
+    const hw = TW / 2 * zoom, hh = TH / 2 * zoom;
+
+    // Cliff faces. A raised tile must show its sides, otherwise the backdrop shows through the
+    // step — which is exactly what an isometric renderer has to draw explicitly.
+    const here = world.elevation[t.i];
+    const dropSouth = here - elevationAt(t.x, t.y + 1);
+    const dropEast = here - elevationAt(t.x + 1, t.y);
+    if (dropSouth > 0) {
+      const d = dropSouth * ESTEP * zoom;
+      ctx.beginPath();
+      ctx.moveTo(t.p.x - hw, t.p.y); ctx.lineTo(t.p.x, t.p.y + hh);
+      ctx.lineTo(t.p.x, t.p.y + hh + d); ctx.lineTo(t.p.x - hw, t.p.y + d);
+      ctx.closePath();
+      ctx.fillStyle = rgbStr(base, 0.72); ctx.fill();
+    }
+    if (dropEast > 0) {
+      const d = dropEast * ESTEP * zoom;
+      ctx.beginPath();
+      ctx.moveTo(t.p.x + hw, t.p.y); ctx.lineTo(t.p.x, t.p.y + hh);
+      ctx.lineTo(t.p.x, t.p.y + hh + d); ctx.lineTo(t.p.x + hw, t.p.y + d);
+      ctx.closePath();
+      ctx.fillStyle = rgbStr(base, 0.84); ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(t.p.x, t.p.y - hh);
+    ctx.lineTo(t.p.x + hw, t.p.y);
+    ctx.lineTo(t.p.x, t.p.y + hh);
+    ctx.lineTo(t.p.x - hw, t.p.y);
+    ctx.closePath();
+    let fill = base;
+    if (opts.overlay === 'scenery' && surf === S_NONE) {
+      const green = world.terrain[t.i] === FOREST || world.terrain[t.i] === WATER;
+      fill = green ? hsv(0.33, 0.55, 0.80) : hsv(0.33, 0.35, 0.50);
+    } else if (opts.overlay === 'congestion' && surf !== S_NONE) {
+      const d = Math.abs(t.x - park.hot.x) + Math.abs(t.y - park.hot.y);
+      const v = Math.max(0, 1 - d / 26);
+      fill = v > 0.05 ? hsv(0.08 - 0.08 * v, 0.75, 0.45 + 0.4 * v) : base;
+    }
+    ctx.fillStyle = rgbStr(fill);
+    ctx.fill();
+    ctx.strokeStyle = rgbStr(fill, 0.88);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // buildings, painter's algorithm
+  const sorted = park.placed.slice().sort((a, b) =>
+    (a.origin.x + a.w + a.origin.y + a.h) - (b.origin.x + b.w + b.origin.y + b.h));
+  for (const b of sorted) {
+    const cat = b.def.category;
+    const jitter = Number(fnv1a(b.def.art) % 1000n) / 1000 * 0.05 - 0.025;
+    const [h, s, v] = CAT_HSB[cat] || CAT_HSB.service;
+    const body = hsv(h + jitter, s, v);
+    const roof = hsv(h + jitter, s * 0.85, Math.min(1, v + 0.14));
+    const left = hsv(h + jitter, s, Math.max(0, v - 0.18));
+    const bh = (CAT_HEIGHT[cat] || 24) * zoom;
+
+    const n = S(project(b.origin.x, b.origin.y));
+    const e = S(project(b.origin.x + b.w, b.origin.y));
+    const so = S(project(b.origin.x + b.w, b.origin.y + b.h));
+    const w = S(project(b.origin.x, b.origin.y + b.h));
+
+    ctx.beginPath();
+    ctx.moveTo(w.x, w.y - bh); ctx.lineTo(so.x, so.y - bh);
+    ctx.lineTo(so.x, so.y); ctx.lineTo(w.x, w.y); ctx.closePath();
+    ctx.fillStyle = rgbStr(body); ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(n.x, n.y - bh); ctx.lineTo(w.x, w.y - bh);
+    ctx.lineTo(w.x, w.y); ctx.lineTo(n.x, n.y); ctx.closePath();
+    ctx.fillStyle = rgbStr(left); ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(n.x, n.y - bh); ctx.lineTo(e.x, e.y - bh);
+    ctx.lineTo(so.x, so.y - bh); ctx.lineTo(w.x, w.y - bh); ctx.closePath();
+    ctx.fillStyle = rgbStr(roof); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.16)'; ctx.lineWidth = 1; ctx.stroke();
+  }
+
+  // build-mode placement preview
+  if (opts.preview) {
+    const { x, y, w, h, valid } = opts.preview;
+    for (let ty = y; ty < y + h; ty++) for (let tx = x; tx < x + w; tx++) {
+      const i = ty * world.W + tx;
+      const p = S(project(tx, ty, world.elevation[i]));
+      const hw = TW / 2 * zoom, hh = TH / 2 * zoom;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y - hh); ctx.lineTo(p.x + hw, p.y);
+      ctx.lineTo(p.x, p.y + hh); ctx.lineTo(p.x - hw, p.y);
+      ctx.closePath();
+      ctx.fillStyle = valid ? 'rgba(64,217,102,0.55)' : 'rgba(230,64,64,0.55)';
+      ctx.fill();
+      ctx.strokeStyle = valid ? 'rgba(30,150,60,0.9)' : 'rgba(170,40,40,0.9)';
+      ctx.lineWidth = 1.5; ctx.stroke();
+    }
+  }
+
+  // people — illustrative positions along the built paths
+  const rng = new Rng(20260922n);
+  const walkable = [];
+  for (let y = 0; y < world.H; y++) for (let x = 0; x < world.W; x++) {
+    const i = y * world.W + x;
+    if (world.surface[i] === S_FOOT || world.surface[i] === S_PLAZA) walkable.push({ x, y, i });
+  }
+  const guestColours = ['#4c73d9', '#f29c4d', '#d9739e', '#8c8ca0'];
+  for (let k = 0; k < opts.people; k++) {
+    const t = walkable[Number(rng.next() % BigInt(walkable.length))];
+    const jx = rng.double(0.15, 0.85), jy = rng.double(0.15, 0.85);
+    const p = S(project(t.x + jx, t.y + jy, world.elevation[t.i]));
+    const scale = zoom;
+    const colour = k % 11 === 0 ? '#f2d81f' : guestColours[k % guestColours.length];
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.beginPath(); ctx.ellipse(p.x, p.y, 4 * scale, 2 * scale, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = colour;
+    ctx.fillRect(p.x - 2.2 * scale, p.y - 12 * scale, 4.4 * scale, 8.5 * scale);
+    ctx.fillStyle = '#f7d9b8';
+    ctx.beginPath(); ctx.arc(p.x, p.y - 14 * scale, 2.6 * scale, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+/* ---------------- chrome ---------------- */
+const fmtMoney = (c) => '€' + (c / 100).toLocaleString('en-GB', { maximumFractionDigits: 0 });
+
+function renderHUD(state, compact) {
+  const stat = (icon, v, l) =>
+    `<div class="stat"><div class="v"><span>${icon}</span>${v}</div>` +
+    (compact ? '' : `<div class="l">${l}</div>`) + '</div>';
+
+  // iPhone gets a reduced set of figures rather than the iPad row squeezed down (brief §35).
+  const speeds = compact ? ['❚❚', '1×', '2×', '▶▶'] : ['❚❚', '1×', '2×', '4×', '▶▶'];
+  const activeSpeed = compact ? Math.min(state.speed, speeds.length - 1) : state.speed;
+  const stats = compact
+    ? stat('💶', fmtMoney(state.cash), 'Cash') + '<div class="sep"></div>' +
+      stat('👪', state.guests, 'Guests') + '<div class="sep"></div>' +
+      stat('🛏', state.occupancy + '%', 'Occupancy')
+    : stat('💶', fmtMoney(state.cash), 'Cash') + '<div class="sep"></div>' +
+      stat('👪', state.guests, 'Guests') + '<div class="sep"></div>' +
+      stat('🛏', state.occupancy + '%', 'Occupancy') + '<div class="sep"></div>' +
+      stat('⭐️', state.rating.toFixed(1), 'Rating');
+
+  document.getElementById('hud').innerHTML = stats +
+    `<div class="speeds">${speeds.map((s, i) =>
+      `<div class="speed ${i === activeSpeed ? 'on' : ''}">${s}</div>`).join('')}</div>`;
+
+  document.getElementById('subhud').innerHTML = compact
+    ? `<span>📅 Fri 12 Jun</span><span>${state.weatherIcon} ${state.temp}°C</span>` +
+      `<span>⬇︎ ${state.arrivals}</span><span>⬆︎ ${state.departures}</span>` +
+      (state.dirty ? `<span class="warn">✨ ${state.dirty}</span>` : '')
+    : `<span>📅 ${state.date}</span><span>·</span><span>${state.weatherIcon} ${state.temp}°C ${state.weather}</span>` +
+      `<span>·</span><span>⬇︎ ${state.arrivals} arriving</span><span>⬆︎ ${state.departures} leaving</span>` +
+      (state.dirty ? `<span class="warn">✨ ${state.dirty} awaiting cleaning</span>` : '');
+}
+
+function meter(label, value, invert) {
+  const eff = invert ? 1 - value : value;
+  const colour = eff > 0.66 ? 'var(--good)' : eff > 0.33 ? 'var(--warn)' : 'var(--bad)';
+  return `<div class="meter"><div class="lbl">${label}</div>` +
+    `<div class="bar"><i style="width:${Math.round(value*100)}%;background:${colour}"></i></div>` +
+    `<div class="pct">${Math.round(value*100)}%</div></div>`;
+}
+
+function renderNav(active, badge) {
+  const items = [['🔨','Build'],['👪','Guests'],['🧹','Staff'],['📅','Bookings'],['💶','Finances'],
+                 ['🌳','Park'],['🧪','Research'],['📈','Stats'],['🔔','Alerts'],['💾','Saves']];
+  document.getElementById('nav').innerHTML = items.map(([ic, label]) =>
+    `<div class="item ${label===active?'on':''}"><div class="ic">${ic}</div>${label}` +
+    (label === 'Alerts' && badge ? `<div class="badge">${badge}</div>` : '') + '</div>').join('');
+}
+
+function spark(values, good) {
+  const w = 340, h = 54;
+  const min = Math.min(...values), max = Math.max(...values), span = (max - min) || 1;
+  const pts = values.map((v, i) =>
+    `${(i / (values.length - 1)) * w},${h - ((v - min) / span) * h}`).join(' ');
+  const zero = min < 0 && max > 0 ? h - ((0 - min) / span) * h : null;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}">` +
+    (zero !== null ? `<line x1="0" y1="${zero}" x2="${w}" y2="${zero}" stroke="rgba(0,0,0,.2)" stroke-dasharray="3 3"/>` : '') +
+    `<polyline points="${pts}" fill="none" stroke="${good ? 'var(--good)' : 'var(--warn)'}" stroke-width="2" stroke-linejoin="round"/></svg>`;
+}
+
+const PANELS = {
+  bookings(state) {
+    const weeks = state.occupancyGrid.map(wk =>
+      `<div class="wk">${wk.map(v => {
+        const c = hsv(0.33 * v, 0.6, 0.45 + 0.3 * v);
+        return `<div class="d" style="background:${rgbStr(c)}">${Math.round(v * 100)}</div>`;
+      }).join('')}</div>`).join('');
+    const rows = state.arrivalsList.map(r =>
+      `<div class="row"><div class="grow"><div class="t">${r.unit}</div>` +
+      `<div class="s">${r.party} · ${r.nights} nights · ${r.status}</div></div>` +
+      `<div class="val">${r.price}</div></div>`).join('');
+    return { title: '📅 Bookings', body:
+      `<div class="sect">Occupancy, next four weeks</div><div class="cal">${weeks}</div>` +
+      `<div class="sect">Booked revenue, next three weeks</div><div class="spark">${spark(state.forecast, true)}</div>` +
+      `<div class="sect">Arriving today</div>${rows}` };
+  },
+  finances(state) {
+    const kv = (a, b) => `<div class="row"><div class="grow t">${a}</div><div class="val">${b}</div></div>`;
+    const cat = state.revenueBreakdown.map(([k, v]) =>
+      `<div class="row"><div class="grow t">${k}</div><div class="val">${v}</div></div>`).join('');
+    return { title: '💶 Finances', body:
+      `<div class="sect">Position</div>` +
+      kv('Cash', fmtMoney(state.cash)) + kv('Net worth', fmtMoney(state.netWorth)) +
+      kv('Debt', fmtMoney(state.debt)) + kv('Profit (7 days)', fmtMoney(state.profit7)) +
+      kv('Revenue (30 days)', fmtMoney(state.revenue30)) +
+      `<div class="sect">Profit, last 30 days</div><div class="spark">${spark(state.profitSeries, true)}</div>` +
+      `<div class="sect">Revenue yesterday</div>${cat}` +
+      `<div class="sect">Pricing</div>` +
+      `<div class="row"><div class="grow"><div class="t">Accommodation prices: ×1.05</div>` +
+      `<div class="bar" style="margin-top:8px"><i style="width:52%;background:var(--accent)"></i></div></div></div>` +
+      `<div class="row"><div class="grow t">Seasonal pricing</div><div class="val">On</div></div>` };
+  },
+  build(state) {
+    const group = (title, rows) => `<div class="sect">${title}</div>` + rows.map(r =>
+      `<div class="row"><div class="grow"><div class="t">${r.name}</div><div class="s">${r.sub}</div></div>` +
+      (r.on ? '<div class="val">✓</div>' : '') + '</div>').join('');
+    return { title: '🔨 Build', body:
+      group('Tools', [{ name: 'Demolish', sub: 'Remove buildings and paths' },
+                      { name: 'Inspect', sub: 'Tap anything to see its details' }]) +
+      group('Paths', state.paths) +
+      group('Accommodation', state.accommodation) +
+      group('Food & drink', state.food) };
+  },
+  park(state) {
+    const rating = (a, v) =>
+      `<div class="row"><div class="grow t">${a}</div>` +
+      `<div class="bar" style="max-width:120px"><i style="width:${Math.round(v*100)}%;background:var(--accent)"></i></div>` +
+      `<div class="val">${Math.round(v*100)}%</div></div>`;
+    const obj = state.objectives.map(o =>
+      `<div class="row"><div class="grow"><div class="t">${o.done ? '✅' : '🎯'} ${o.title}</div>` +
+      `<div class="bar" style="margin-top:6px"><i style="width:${Math.round(o.progress*100)}%;background:${o.done?'var(--good)':'var(--accent)'}"></i></div>` +
+      `<div class="s">${o.detail}</div></div></div>`).join('');
+    return { title: '🌳 Park', body:
+      `<div class="sect">Overview</div>` +
+      `<div class="row"><div class="grow t">Park</div><div class="val">De Zandheuvel</div></div>` +
+      `<div class="row"><div class="grow t">Cottages</div><div class="val">15</div></div>` +
+      `<div class="row"><div class="grow t">Beds</div><div class="val">68</div></div>` +
+      `<div class="row"><div class="grow t">Facilities</div><div class="val">10</div></div>` +
+      `<div class="sect">Ratings</div>` +
+      rating('Overall', state.ratings.overall) + rating('Cleanliness', state.ratings.cleanliness) +
+      rating('Service', state.ratings.service) + rating('Safety', state.ratings.safety) +
+      rating('Sustainability', state.ratings.sustainability) +
+      `<div class="sect">Objectives</div>${obj}` };
+  },
+  guests(state) {
+    const thoughts = state.thoughts.map(t =>
+      `<div class="row"><div>${t.good ? '👍' : '👎'}</div><div class="grow t">${t.text}</div>` +
+      `<div class="val">${t.count}</div></div>`).join('');
+    const reviews = state.reviews.map(r =>
+      `<div class="row"><div class="grow"><div class="t"><span class="stars">${r.stars}</span> ${r.score}</div>` +
+      `<div class="s">${r.body}</div></div></div>`).join('');
+    return { title: '👪 Guests', body:
+      `<div class="sect">Summary</div>` +
+      `<div class="row"><div class="grow t">Guests on site</div><div class="val">${state.guests}</div></div>` +
+      `<div class="row"><div class="grow t">Average happiness</div><div class="val">78%</div></div>` +
+      `<div class="row"><div class="grow t">Parties staying</div><div class="val">11</div></div>` +
+      `<div class="sect">What guests are saying</div>${thoughts}` +
+      `<div class="sect">Recent reviews</div>${reviews}` };
+  }
+};
+</script>
+<script src="render.js"></script>
+</body>
+</html>

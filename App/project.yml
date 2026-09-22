@@ -1,0 +1,41 @@
+# XcodeGen specification.
+#
+# The committed ParkLife.xcodeproj is hand-written and should just work. This file is a
+# regeneration path: if the project file is ever damaged or an Xcode version changes the format,
+# `xcodegen generate --spec App/project.yml` rebuilds an equivalent project from scratch.
+name: ParkLife
+options:
+  bundleIdPrefix: com.parklife
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+packages:
+  ParkLifeCore:
+    path: ..
+targets:
+  ParkLife:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: ParkLife
+    dependencies:
+      - package: ParkLifeCore
+        product: ParkLifeCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.parklife.game
+        MARKETING_VERSION: "0.2.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: ParkLife
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIStatusBarHidden: YES
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_VERSION: "5.0"
+        SWIFT_EMIT_LOC_STRINGS: YES

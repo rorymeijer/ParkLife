@@ -1,0 +1,40 @@
+[
+  {
+    "id": "footpath",
+    "nameKey": "path.footpath",
+    "surfaceID": "footpath",
+    "costPerTile": 4200,
+    "demolitionRefundFraction": 0.25,
+    "art": "path/footpath",
+    "scenery": 0.02
+  },
+  {
+    "id": "paved_plaza",
+    "nameKey": "path.plaza",
+    "surfaceID": "plaza",
+    "costPerTile": 6800,
+    "demolitionRefundFraction": 0.25,
+    "art": "path/plaza",
+    "scenery": 0.06
+  },
+  {
+    "id": "cycle_path",
+    "nameKey": "path.cyclePath",
+    "surfaceID": "cyclePath",
+    "costPerTile": 5800,
+    "demolitionRefundFraction": 0.25,
+    "art": "path/cycle",
+    "scenery": 0.03,
+    "researchID": "infra_cycling"
+  },
+  {
+    "id": "timber_bridge",
+    "nameKey": "path.bridge",
+    "surfaceID": "bridge",
+    "costPerTile": 22000,
+    "demolitionRefundFraction": 0.2,
+    "art": "path/bridge",
+    "scenery": 0.22,
+    "researchID": "infra_bridges"
+  }
+]

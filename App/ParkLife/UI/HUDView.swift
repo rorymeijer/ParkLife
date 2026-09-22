@@ -1,0 +1,136 @@
+import SwiftUI
+import ParkLifeCore
+
+/// The persistent status bar: money, date, weather, occupancy, guests, rating and alerts.
+struct HUDView: View {
+
+    @EnvironmentObject private var session: GameSession
+    @Binding var showingDebugMenu: Bool
+
+    var body: some View {
+        if let hud = session.snapshot?.hud {
+            VStack(spacing: 6) {
+                HStack(spacing: 10) {
+                    statistic(
+                        symbol: "eurosign.circle.fill",
+                        value: hud.cash.description,
+                        label: NSLocalizedString("hud.cash", comment: ""),
+                        tint: hud.cash.isNegative ? .red : .primary
+                    )
+                    Divider().frame(height: 26)
+                    statistic(
+                        symbol: "person.3.fill",
+                        value: "\(hud.guestsOnSite)",
+                        label: NSLocalizedString("hud.guests", comment: "")
+                    )
+                    Divider().frame(height: 26)
+                    statistic(
+                        symbol: "bed.double.fill",
+                        value: "\(hud.occupancyPercent)%",
+                        label: NSLocalizedString("hud.occupancy", comment: "")
+                    )
+                    Divider().frame(height: 26)
+                    statistic(
+                        symbol: "star.fill",
+                        value: String(format: "%.1f", hud.reputationStars),
+                        label: NSLocalizedString("hud.rating", comment: "")
+                    )
+                    Spacer(minLength: 0)
+                    speedControls
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                HStack(spacing: 10) {
+                    Label(dateText(hud.date), systemImage: "calendar")
+                    Divider().frame(height: 18)
+                    Label(
+                        "\(Int(hud.temperature.rounded()))°C  \(NSLocalizedString(hud.weather.localizationKey, comment: ""))",
+                        systemImage: weatherSymbol(hud.weather)
+                    )
+                    Spacer(minLength: 0)
+                    Label("\(hud.arrivalsToday)", systemImage: "arrow.down.to.line")
+                        .accessibilityLabel(Text(NSLocalizedString("hud.arrivalsToday", comment: "")))
+                    Label("\(hud.departuresToday)", systemImage: "arrow.up.to.line")
+                        .accessibilityLabel(Text(NSLocalizedString("hud.departuresToday", comment: "")))
+                    if hud.unitsDirty > 0 {
+                        Label("\(hud.unitsDirty)", systemImage: "sparkles")
+                            .foregroundStyle(.orange)
+                            .accessibilityLabel(Text(NSLocalizedString("hud.awaitingCleaning", comment: "")))
+                    }
+                }
+                .font(.caption)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(.thinMaterial, in: Capsule())
+            }
+            .padding(.top, 6)
+        }
+    }
+
+    private var speedControls: some View {
+        HStack(spacing: 6) {
+            ForEach(GameSpeed.allCases, id: \.self) { speed in
+                Button {
+                    session.submit(.setSpeed(speed))
+                } label: {
+                    Text(speed.displayLabel)
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .frame(minWidth: 34, minHeight: 30)
+                }
+                .buttonStyle(.bordered)
+                .tint(session.speed == speed ? .accentColor : .secondary)
+                .accessibilityLabel(Text(NSLocalizedString(speed.localizationKey, comment: "")))
+            }
+            #if DEBUG
+            Button {
+                showingDebugMenu = true
+            } label: {
+                Image(systemName: "ladybug")
+                    .frame(minWidth: 34, minHeight: 30)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityLabel(Text(NSLocalizedString("debug.title", comment: "")))
+            #endif
+        }
+    }
+
+    private func statistic(symbol: String, value: String, label: String, tint: Color = .primary) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Label(value, systemImage: symbol)
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(tint)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("\(label): \(value)"))
+    }
+
+    private func dateText(_ date: GameDate) -> String {
+        String(
+            format: NSLocalizedString("hud.dateFormat", comment: ""),
+            NSLocalizedString(date.weekday.localizationKey, comment: ""),
+            date.dayOfMonth,
+            NSLocalizedString("month.\(date.month)", comment: ""),
+            date.gameYear,
+            date.hour,
+            date.minute
+        )
+    }
+
+    private func weatherSymbol(_ condition: WeatherCondition) -> String {
+        switch condition {
+        case .clear: return "sun.max"
+        case .partlyCloudy: return "cloud.sun"
+        case .cloudy: return "cloud"
+        case .lightRain: return "cloud.drizzle"
+        case .rain: return "cloud.rain"
+        case .storm: return "cloud.bolt.rain"
+        case .fog: return "cloud.fog"
+        case .snow: return "cloud.snow"
+        }
+    }
+}

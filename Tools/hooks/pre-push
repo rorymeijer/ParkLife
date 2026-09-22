@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#
+# Optional git pre-push hook: refuses a push that does not verify.
+#
+# Not installed by default — opt in with:
+#   ln -s ../../Tools/hooks/pre-push .git/hooks/pre-push
+#
+# Remove the symlink to opt back out.
+set -euo pipefail
+exec "$(git rev-parse --show-toplevel)/Tools/verify.sh"

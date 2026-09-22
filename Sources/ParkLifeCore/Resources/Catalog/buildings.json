@@ -1,0 +1,1146 @@
+[
+  {
+    "id": "park_entrance",
+    "nameKey": "building.parkEntrance",
+    "summaryKey": "building.parkEntrance.summary",
+    "category": "infrastructure",
+    "footprintWidth": 3,
+    "footprintHeight": 2,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 0
+      }
+    ],
+    "constructionCost": 0,
+    "dailyOperatingCost": 0,
+    "demolitionRefundFraction": 0.0,
+    "art": "infra/entrance_gate",
+    "requiresPathAdjacency": true,
+    "scenery": 0.1,
+    "sceneryRadius": 2,
+    "facility": {
+      "kind": "entrance",
+      "capacity": 40,
+      "queueCapacity": 60,
+      "minimumServiceMinutes": 1,
+      "maximumServiceMinutes": 2,
+      "basePrice": 0,
+      "openingHours": {
+        "opensAtMinute": 0,
+        "closesAtMinute": 0
+      },
+      "appeal": 0.3,
+      "childSuitability": 0.5,
+      "isIndoor": false,
+      "staffRequired": 0,
+      "staffRoleID": null,
+      "relief": [],
+      "interests": [],
+      "variableCostFraction": 0.0
+    }
+  },
+  {
+    "id": "reception",
+    "nameKey": "building.reception",
+    "summaryKey": "building.reception.summary",
+    "category": "service",
+    "footprintWidth": 4,
+    "footprintHeight": 3,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 2
+      },
+      {
+        "x": 2,
+        "y": 2
+      }
+    ],
+    "constructionCost": 8500000,
+    "dailyOperatingCost": 12000,
+    "demolitionRefundFraction": 0.5,
+    "art": "service/reception",
+    "requiresPathAdjacency": true,
+    "scenery": 0.12,
+    "sceneryRadius": 2,
+    "facility": {
+      "kind": "reception",
+      "capacity": 3,
+      "queueCapacity": 24,
+      "minimumServiceMinutes": 4,
+      "maximumServiceMinutes": 9,
+      "basePrice": 0,
+      "openingHours": {
+        "opensAtMinute": 420,
+        "closesAtMinute": 1320
+      },
+      "appeal": 0.35,
+      "childSuitability": 0.4,
+      "isIndoor": true,
+      "staffRequired": 2,
+      "staffRoleID": "reception",
+      "relief": [],
+      "interests": [],
+      "variableCostFraction": 0.0
+    }
+  },
+  {
+    "id": "tinyhouse_basic_2",
+    "nameKey": "building.tinyHouseBasic2",
+    "summaryKey": "building.tinyHouseBasic2.summary",
+    "category": "accommodation",
+    "footprintWidth": 2,
+    "footprintHeight": 2,
+    "entranceOffsets": [
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "constructionCost": 3800000,
+    "dailyOperatingCost": 600,
+    "demolitionRefundFraction": 0.5,
+    "art": "accommodation/tinyhouse",
+    "requiresPathAdjacency": true,
+    "scenery": 0.06,
+    "sceneryRadius": 2,
+    "accommodation": {
+      "capacity": 2,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "hasKitchen": true,
+      "tier": "basic",
+      "baseQuality": 0.52,
+      "baseNightlyPrice": 6200,
+      "dailyOperatingCost": 900,
+      "cleaningMinutes": 35,
+      "energyPerNightKWh": 22,
+      "waterPerNightLitres": 260
+    }
+  },
+  {
+    "id": "cottage_basic_4",
+    "nameKey": "building.cottageBasic4",
+    "summaryKey": "building.cottageBasic4.summary",
+    "category": "accommodation",
+    "footprintWidth": 3,
+    "footprintHeight": 3,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 2
+      }
+    ],
+    "constructionCost": 6200000,
+    "dailyOperatingCost": 900,
+    "demolitionRefundFraction": 0.5,
+    "art": "accommodation/cottage_basic",
+    "requiresPathAdjacency": true,
+    "scenery": 0.05,
+    "sceneryRadius": 2,
+    "accommodation": {
+      "capacity": 4,
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "hasKitchen": true,
+      "tier": "basic",
+      "baseQuality": 0.55,
+      "baseNightlyPrice": 8900,
+      "dailyOperatingCost": 1300,
+      "cleaningMinutes": 45,
+      "energyPerNightKWh": 31,
+      "waterPerNightLitres": 420
+    }
+  },
+  {
+    "id": "cottage_comfort_4",
+    "nameKey": "building.cottageComfort4",
+    "summaryKey": "building.cottageComfort4.summary",
+    "category": "accommodation",
+    "footprintWidth": 3,
+    "footprintHeight": 3,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 2
+      }
+    ],
+    "constructionCost": 8800000,
+    "dailyOperatingCost": 1200,
+    "demolitionRefundFraction": 0.5,
+    "art": "accommodation/cottage_comfort",
+    "requiresPathAdjacency": true,
+    "scenery": 0.09,
+    "sceneryRadius": 2,
+    "accommodation": {
+      "capacity": 4,
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "hasKitchen": true,
+      "tier": "comfort",
+      "baseQuality": 0.68,
+      "baseNightlyPrice": 11800,
+      "dailyOperatingCost": 1700,
+      "cleaningMinutes": 50,
+      "energyPerNightKWh": 34,
+      "waterPerNightLitres": 450
+    }
+  },
+  {
+    "id": "cottage_comfort_6",
+    "nameKey": "building.cottageComfort6",
+    "summaryKey": "building.cottageComfort6.summary",
+    "category": "accommodation",
+    "footprintWidth": 4,
+    "footprintHeight": 3,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 2
+      }
+    ],
+    "constructionCost": 11800000,
+    "dailyOperatingCost": 1600,
+    "demolitionRefundFraction": 0.5,
+    "art": "accommodation/cottage_comfort6",
+    "requiresPathAdjacency": true,
+    "scenery": 0.09,
+    "sceneryRadius": 2,
+    "accommodation": {
+      "capacity": 6,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "hasKitchen": true,
+      "tier": "comfort",
+      "baseQuality": 0.7,
+      "baseNightlyPrice": 15600,
+      "dailyOperatingCost": 2200,
+      "cleaningMinutes": 60,
+      "energyPerNightKWh": 44,
+      "waterPerNightLitres": 610
+    }
+  },
+  {
+    "id": "cottage_premium_6",
+    "nameKey": "building.cottagePremium6",
+    "summaryKey": "building.cottagePremium6.summary",
+    "category": "accommodation",
+    "footprintWidth": 4,
+    "footprintHeight": 4,
+    "entranceOffsets": [
+      {
+        "x": 2,
+        "y": 3
+      }
+    ],
+    "constructionCost": 16500000,
+    "dailyOperatingCost": 2400,
+    "demolitionRefundFraction": 0.5,
+    "art": "accommodation/cottage_premium",
+    "requiresPathAdjacency": true,
+    "scenery": 0.16,
+    "sceneryRadius": 2,
+    "accommodation": {
+      "capacity": 6,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "hasKitchen": true,
+      "tier": "premium",
+      "baseQuality": 0.82,
+      "baseNightlyPrice": 21400,
+      "dailyOperatingCost": 3100,
+      "cleaningMinutes": 70,
+      "energyPerNightKWh": 51,
+      "waterPerNightLitres": 680
+    }
+  },
+  {
+    "id": "lodge_waterfront_6",
+    "nameKey": "building.lodgeWaterfront6",
+    "summaryKey": "building.lodgeWaterfront6.summary",
+    "category": "accommodation",
+    "footprintWidth": 4,
+    "footprintHeight": 4,
+    "entranceOffsets": [
+      {
+        "x": 2,
+        "y": 3
+      }
+    ],
+    "constructionCost": 19800000,
+    "dailyOperatingCost": 2800,
+    "demolitionRefundFraction": 0.5,
+    "art": "accommodation/lodge_waterfront",
+    "requiresPathAdjacency": true,
+    "scenery": 0.3,
+    "sceneryRadius": 3,
+    "researchID": "acc_waterfront",
+    "accommodation": {
+      "capacity": 6,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "hasKitchen": true,
+      "tier": "premium",
+      "baseQuality": 0.88,
+      "baseNightlyPrice": 26800,
+      "dailyOperatingCost": 3600,
+      "cleaningMinutes": 75,
+      "energyPerNightKWh": 54,
+      "waterPerNightLitres": 700
+    }
+  },
+  {
+    "id": "treehouse_premium_4",
+    "nameKey": "building.treehousePremium4",
+    "summaryKey": "building.treehousePremium4.summary",
+    "category": "accommodation",
+    "footprintWidth": 3,
+    "footprintHeight": 3,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 2
+      }
+    ],
+    "constructionCost": 14200000,
+    "dailyOperatingCost": 2100,
+    "demolitionRefundFraction": 0.5,
+    "art": "accommodation/treehouse",
+    "requiresPathAdjacency": true,
+    "scenery": 0.34,
+    "sceneryRadius": 3,
+    "researchID": "acc_treehouse",
+    "accommodation": {
+      "capacity": 4,
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "hasKitchen": true,
+      "tier": "premium",
+      "baseQuality": 0.84,
+      "baseNightlyPrice": 23200,
+      "dailyOperatingCost": 2800,
+      "cleaningMinutes": 65,
+      "energyPerNightKWh": 38,
+      "waterPerNightLitres": 430
+    }
+  },
+  {
+    "id": "villa_vip_8",
+    "nameKey": "building.villaVip8",
+    "summaryKey": "building.villaVip8.summary",
+    "category": "accommodation",
+    "footprintWidth": 5,
+    "footprintHeight": 5,
+    "entranceOffsets": [
+      {
+        "x": 2,
+        "y": 4
+      }
+    ],
+    "constructionCost": 31500000,
+    "dailyOperatingCost": 4600,
+    "demolitionRefundFraction": 0.5,
+    "art": "accommodation/villa_vip",
+    "requiresPathAdjacency": true,
+    "scenery": 0.24,
+    "sceneryRadius": 3,
+    "researchID": "acc_vip",
+    "accommodation": {
+      "capacity": 8,
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "hasKitchen": true,
+      "tier": "vip",
+      "baseQuality": 0.94,
+      "baseNightlyPrice": 39800,
+      "dailyOperatingCost": 5800,
+      "cleaningMinutes": 95,
+      "energyPerNightKWh": 78,
+      "waterPerNightLitres": 980
+    }
+  },
+  {
+    "id": "snack_bar",
+    "nameKey": "building.snackBar",
+    "summaryKey": "building.snackBar.summary",
+    "category": "food",
+    "footprintWidth": 2,
+    "footprintHeight": 2,
+    "entranceOffsets": [
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "constructionCost": 4200000,
+    "dailyOperatingCost": 5500,
+    "demolitionRefundFraction": 0.5,
+    "art": "food/snackbar",
+    "requiresPathAdjacency": true,
+    "scenery": 0.02,
+    "sceneryRadius": 2,
+    "facility": {
+      "kind": "snackBar",
+      "capacity": 8,
+      "queueCapacity": 14,
+      "minimumServiceMinutes": 8,
+      "maximumServiceMinutes": 16,
+      "basePrice": 950,
+      "openingHours": {
+        "opensAtMinute": 660,
+        "closesAtMinute": 1260
+      },
+      "appeal": 0.48,
+      "childSuitability": 0.72,
+      "isIndoor": false,
+      "staffRequired": 1,
+      "staffRoleID": "catering",
+      "relief": [
+        {
+          "need": "hunger",
+          "amount": 0.55
+        },
+        {
+          "need": "thirst",
+          "amount": 0.35
+        }
+      ],
+      "interests": [
+        "food"
+      ],
+      "variableCostFraction": 0.34
+    }
+  },
+  {
+    "id": "cafe_terrace",
+    "nameKey": "building.cafeTerrace",
+    "summaryKey": "building.cafeTerrace.summary",
+    "category": "food",
+    "footprintWidth": 3,
+    "footprintHeight": 3,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 2
+      }
+    ],
+    "constructionCost": 7800000,
+    "dailyOperatingCost": 9500,
+    "demolitionRefundFraction": 0.5,
+    "art": "food/cafe",
+    "requiresPathAdjacency": true,
+    "scenery": 0.14,
+    "sceneryRadius": 2,
+    "facility": {
+      "kind": "cafe",
+      "capacity": 16,
+      "queueCapacity": 18,
+      "minimumServiceMinutes": 16,
+      "maximumServiceMinutes": 34,
+      "basePrice": 725,
+      "openingHours": {
+        "opensAtMinute": 540,
+        "closesAtMinute": 1320
+      },
+      "appeal": 0.58,
+      "childSuitability": 0.55,
+      "isIndoor": false,
+      "staffRequired": 2,
+      "staffRoleID": "catering",
+      "relief": [
+        {
+          "need": "thirst",
+          "amount": 0.75
+        },
+        {
+          "need": "hunger",
+          "amount": 0.25
+        },
+        {
+          "need": "boredom",
+          "amount": 0.18
+        }
+      ],
+      "interests": [
+        "food"
+      ],
+      "variableCostFraction": 0.3
+    }
+  },
+  {
+    "id": "restaurant_family",
+    "nameKey": "building.restaurantFamily",
+    "summaryKey": "building.restaurantFamily.summary",
+    "category": "food",
+    "footprintWidth": 5,
+    "footprintHeight": 4,
+    "entranceOffsets": [
+      {
+        "x": 2,
+        "y": 3
+      }
+    ],
+    "constructionCost": 16800000,
+    "dailyOperatingCost": 21000,
+    "demolitionRefundFraction": 0.5,
+    "art": "food/restaurant",
+    "requiresPathAdjacency": true,
+    "scenery": 0.12,
+    "sceneryRadius": 2,
+    "facility": {
+      "kind": "restaurant",
+      "capacity": 40,
+      "queueCapacity": 26,
+      "minimumServiceMinutes": 42,
+      "maximumServiceMinutes": 78,
+      "basePrice": 2450,
+      "openingHours": {
+        "opensAtMinute": 1020,
+        "closesAtMinute": 1320
+      },
+      "appeal": 0.7,
+      "childSuitability": 0.66,
+      "isIndoor": true,
+      "staffRequired": 4,
+      "staffRoleID": "catering",
+      "relief": [
+        {
+          "need": "hunger",
+          "amount": 0.95
+        },
+        {
+          "need": "thirst",
+          "amount": 0.7
+        },
+        {
+          "need": "boredom",
+          "amount": 0.2
+        }
+      ],
+      "interests": [
+        "food"
+      ],
+      "variableCostFraction": 0.33
+    }
+  },
+  {
+    "id": "pancake_house",
+    "nameKey": "building.pancakeHouse",
+    "summaryKey": "building.pancakeHouse.summary",
+    "category": "food",
+    "footprintWidth": 4,
+    "footprintHeight": 4,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 3
+      }
+    ],
+    "constructionCost": 13200000,
+    "dailyOperatingCost": 16000,
+    "demolitionRefundFraction": 0.5,
+    "art": "food/pancakes",
+    "requiresPathAdjacency": true,
+    "scenery": 0.15,
+    "sceneryRadius": 2,
+    "researchID": "food_pancake",
+    "facility": {
+      "kind": "restaurant",
+      "capacity": 30,
+      "queueCapacity": 22,
+      "minimumServiceMinutes": 35,
+      "maximumServiceMinutes": 60,
+      "basePrice": 1750,
+      "openingHours": {
+        "opensAtMinute": 720,
+        "closesAtMinute": 1200
+      },
+      "appeal": 0.66,
+      "childSuitability": 0.92,
+      "isIndoor": true,
+      "staffRequired": 3,
+      "staffRoleID": "catering",
+      "relief": [
+        {
+          "need": "hunger",
+          "amount": 0.9
+        },
+        {
+          "need": "thirst",
+          "amount": 0.55
+        },
+        {
+          "need": "boredom",
+          "amount": 0.25
+        }
+      ],
+      "interests": [
+        "food"
+      ],
+      "variableCostFraction": 0.31
+    }
+  },
+  {
+    "id": "supermarket",
+    "nameKey": "building.supermarket",
+    "summaryKey": "building.supermarket.summary",
+    "category": "retail",
+    "footprintWidth": 5,
+    "footprintHeight": 4,
+    "entranceOffsets": [
+      {
+        "x": 2,
+        "y": 3
+      }
+    ],
+    "constructionCost": 14500000,
+    "dailyOperatingCost": 17500,
+    "demolitionRefundFraction": 0.5,
+    "art": "retail/supermarket",
+    "requiresPathAdjacency": true,
+    "scenery": 0.0,
+    "sceneryRadius": 2,
+    "facility": {
+      "kind": "supermarket",
+      "capacity": 24,
+      "queueCapacity": 20,
+      "minimumServiceMinutes": 12,
+      "maximumServiceMinutes": 26,
+      "basePrice": 3100,
+      "openingHours": {
+        "opensAtMinute": 480,
+        "closesAtMinute": 1200
+      },
+      "appeal": 0.42,
+      "childSuitability": 0.4,
+      "isIndoor": true,
+      "staffRequired": 3,
+      "staffRoleID": "retail",
+      "relief": [
+        {
+          "need": "hunger",
+          "amount": 0.62
+        },
+        {
+          "need": "thirst",
+          "amount": 0.62
+        }
+      ],
+      "interests": [
+        "shopping"
+      ],
+      "variableCostFraction": 0.66
+    }
+  },
+  {
+    "id": "souvenir_shop",
+    "nameKey": "building.souvenirShop",
+    "summaryKey": "building.souvenirShop.summary",
+    "category": "retail",
+    "footprintWidth": 3,
+    "footprintHeight": 2,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 1
+      }
+    ],
+    "constructionCost": 5400000,
+    "dailyOperatingCost": 6200,
+    "demolitionRefundFraction": 0.5,
+    "art": "retail/souvenir",
+    "requiresPathAdjacency": true,
+    "scenery": 0.0,
+    "sceneryRadius": 2,
+    "facility": {
+      "kind": "shop",
+      "capacity": 10,
+      "queueCapacity": 12,
+      "minimumServiceMinutes": 8,
+      "maximumServiceMinutes": 18,
+      "basePrice": 1400,
+      "openingHours": {
+        "opensAtMinute": 600,
+        "closesAtMinute": 1140
+      },
+      "appeal": 0.44,
+      "childSuitability": 0.7,
+      "isIndoor": true,
+      "staffRequired": 1,
+      "staffRoleID": "retail",
+      "relief": [
+        {
+          "need": "boredom",
+          "amount": 0.22
+        }
+      ],
+      "interests": [
+        "shopping"
+      ],
+      "variableCostFraction": 0.48
+    }
+  },
+  {
+    "id": "pool_indoor",
+    "nameKey": "building.poolIndoor",
+    "summaryKey": "building.poolIndoor.summary",
+    "category": "pool",
+    "footprintWidth": 8,
+    "footprintHeight": 6,
+    "entranceOffsets": [
+      {
+        "x": 3,
+        "y": 5
+      },
+      {
+        "x": 4,
+        "y": 5
+      }
+    ],
+    "constructionCost": 42500000,
+    "dailyOperatingCost": 52000,
+    "demolitionRefundFraction": 0.5,
+    "art": "pool/indoor_pool",
+    "requiresPathAdjacency": true,
+    "scenery": 0.18,
+    "sceneryRadius": 3,
+    "facility": {
+      "kind": "pool",
+      "capacity": 120,
+      "queueCapacity": 45,
+      "minimumServiceMinutes": 55,
+      "maximumServiceMinutes": 130,
+      "basePrice": 0,
+      "openingHours": {
+        "opensAtMinute": 540,
+        "closesAtMinute": 1260
+      },
+      "appeal": 0.92,
+      "childSuitability": 0.95,
+      "isIndoor": true,
+      "staffRequired": 4,
+      "staffRoleID": "lifeguard",
+      "relief": [
+        {
+          "need": "boredom",
+          "amount": 0.85
+        },
+        {
+          "need": "tiredness",
+          "amount": 0.12
+        },
+        {
+          "need": "thirst",
+          "amount": 0.1
+        }
+      ],
+      "interests": [
+        "swimming"
+      ],
+      "variableCostFraction": 0.06
+    }
+  },
+  {
+    "id": "playground",
+    "nameKey": "building.playground",
+    "summaryKey": "building.playground.summary",
+    "category": "activity",
+    "footprintWidth": 4,
+    "footprintHeight": 4,
+    "entranceOffsets": [
+      {
+        "x": 2,
+        "y": 3
+      }
+    ],
+    "constructionCost": 2800000,
+    "dailyOperatingCost": 1800,
+    "demolitionRefundFraction": 0.5,
+    "art": "activity/playground",
+    "requiresPathAdjacency": true,
+    "scenery": 0.22,
+    "sceneryRadius": 3,
+    "facility": {
+      "kind": "playground",
+      "capacity": 24,
+      "queueCapacity": 10,
+      "minimumServiceMinutes": 20,
+      "maximumServiceMinutes": 55,
+      "basePrice": 0,
+      "openingHours": {
+        "opensAtMinute": 480,
+        "closesAtMinute": 1200
+      },
+      "appeal": 0.62,
+      "childSuitability": 0.98,
+      "isIndoor": false,
+      "staffRequired": 0,
+      "staffRoleID": null,
+      "relief": [
+        {
+          "need": "boredom",
+          "amount": 0.72
+        },
+        {
+          "need": "tiredness",
+          "amount": 0.1
+        }
+      ],
+      "interests": [
+        "entertainment",
+        "sport"
+      ],
+      "variableCostFraction": 0.0
+    }
+  },
+  {
+    "id": "minigolf",
+    "nameKey": "building.miniGolf",
+    "summaryKey": "building.miniGolf.summary",
+    "category": "activity",
+    "footprintWidth": 6,
+    "footprintHeight": 5,
+    "entranceOffsets": [
+      {
+        "x": 2,
+        "y": 4
+      }
+    ],
+    "constructionCost": 7400000,
+    "dailyOperatingCost": 6400,
+    "demolitionRefundFraction": 0.5,
+    "art": "activity/minigolf",
+    "requiresPathAdjacency": true,
+    "scenery": 0.2,
+    "sceneryRadius": 3,
+    "researchID": "act_minigolf",
+    "facility": {
+      "kind": "activity",
+      "capacity": 18,
+      "queueCapacity": 14,
+      "minimumServiceMinutes": 35,
+      "maximumServiceMinutes": 70,
+      "basePrice": 850,
+      "openingHours": {
+        "opensAtMinute": 600,
+        "closesAtMinute": 1140
+      },
+      "appeal": 0.64,
+      "childSuitability": 0.84,
+      "isIndoor": false,
+      "staffRequired": 1,
+      "staffRoleID": "activities",
+      "relief": [
+        {
+          "need": "boredom",
+          "amount": 0.78
+        }
+      ],
+      "interests": [
+        "sport",
+        "entertainment"
+      ],
+      "variableCostFraction": 0.12
+    }
+  },
+  {
+    "id": "bike_rental",
+    "nameKey": "building.bikeRental",
+    "summaryKey": "building.bikeRental.summary",
+    "category": "activity",
+    "footprintWidth": 3,
+    "footprintHeight": 2,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 1
+      }
+    ],
+    "constructionCost": 4600000,
+    "dailyOperatingCost": 4000,
+    "demolitionRefundFraction": 0.5,
+    "art": "activity/bike_rental",
+    "requiresPathAdjacency": true,
+    "scenery": 0.0,
+    "sceneryRadius": 2,
+    "researchID": "act_bikes",
+    "facility": {
+      "kind": "activity",
+      "capacity": 12,
+      "queueCapacity": 10,
+      "minimumServiceMinutes": 10,
+      "maximumServiceMinutes": 20,
+      "basePrice": 1200,
+      "openingHours": {
+        "opensAtMinute": 540,
+        "closesAtMinute": 1080
+      },
+      "appeal": 0.56,
+      "childSuitability": 0.74,
+      "isIndoor": false,
+      "staffRequired": 1,
+      "staffRoleID": "activities",
+      "relief": [
+        {
+          "need": "boredom",
+          "amount": 0.55
+        }
+      ],
+      "interests": [
+        "sport",
+        "nature"
+      ],
+      "variableCostFraction": 0.14
+    }
+  },
+  {
+    "id": "kids_club",
+    "nameKey": "building.kidsClub",
+    "summaryKey": "building.kidsClub.summary",
+    "category": "activity",
+    "footprintWidth": 4,
+    "footprintHeight": 3,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 2
+      }
+    ],
+    "constructionCost": 8800000,
+    "dailyOperatingCost": 13000,
+    "demolitionRefundFraction": 0.5,
+    "art": "activity/kids_club",
+    "requiresPathAdjacency": true,
+    "scenery": 0.1,
+    "sceneryRadius": 2,
+    "researchID": "act_kidsclub",
+    "facility": {
+      "kind": "activity",
+      "capacity": 30,
+      "queueCapacity": 16,
+      "minimumServiceMinutes": 60,
+      "maximumServiceMinutes": 120,
+      "basePrice": 650,
+      "openingHours": {
+        "opensAtMinute": 600,
+        "closesAtMinute": 1020
+      },
+      "appeal": 0.6,
+      "childSuitability": 1.0,
+      "isIndoor": true,
+      "staffRequired": 2,
+      "staffRoleID": "activities",
+      "relief": [
+        {
+          "need": "boredom",
+          "amount": 0.88
+        }
+      ],
+      "interests": [
+        "entertainment"
+      ],
+      "variableCostFraction": 0.1
+    }
+  },
+  {
+    "id": "toilet_block",
+    "nameKey": "building.toiletBlock",
+    "summaryKey": "building.toiletBlock.summary",
+    "category": "service",
+    "footprintWidth": 2,
+    "footprintHeight": 2,
+    "entranceOffsets": [
+      {
+        "x": 0,
+        "y": 1
+      }
+    ],
+    "constructionCost": 2400000,
+    "dailyOperatingCost": 2200,
+    "demolitionRefundFraction": 0.5,
+    "art": "service/toilets",
+    "requiresPathAdjacency": true,
+    "scenery": 0.0,
+    "sceneryRadius": 2,
+    "facility": {
+      "kind": "toilet",
+      "capacity": 8,
+      "queueCapacity": 10,
+      "minimumServiceMinutes": 3,
+      "maximumServiceMinutes": 7,
+      "basePrice": 0,
+      "openingHours": {
+        "opensAtMinute": 0,
+        "closesAtMinute": 0
+      },
+      "appeal": 0.18,
+      "childSuitability": 0.5,
+      "isIndoor": true,
+      "staffRequired": 0,
+      "staffRoleID": null,
+      "relief": [
+        {
+          "need": "bladder",
+          "amount": 0.98
+        }
+      ],
+      "interests": [],
+      "variableCostFraction": 0.0
+    }
+  },
+  {
+    "id": "staff_depot",
+    "nameKey": "building.staffDepot",
+    "summaryKey": "building.staffDepot.summary",
+    "category": "staff",
+    "footprintWidth": 3,
+    "footprintHeight": 3,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 2
+      }
+    ],
+    "constructionCost": 5200000,
+    "dailyOperatingCost": 4500,
+    "demolitionRefundFraction": 0.5,
+    "art": "staff/depot",
+    "requiresPathAdjacency": true,
+    "scenery": -0.04,
+    "sceneryRadius": 2
+  },
+  {
+    "id": "maintenance_shed",
+    "nameKey": "building.maintenanceShed",
+    "summaryKey": "building.maintenanceShed.summary",
+    "category": "staff",
+    "footprintWidth": 3,
+    "footprintHeight": 2,
+    "entranceOffsets": [
+      {
+        "x": 1,
+        "y": 1
+      }
+    ],
+    "constructionCost": 3800000,
+    "dailyOperatingCost": 3500,
+    "demolitionRefundFraction": 0.5,
+    "art": "staff/maintenance",
+    "requiresPathAdjacency": true,
+    "scenery": -0.04,
+    "sceneryRadius": 2
+  },
+  {
+    "id": "tree_oak",
+    "nameKey": "building.treeOak",
+    "summaryKey": "building.treeOak.summary",
+    "category": "decoration",
+    "footprintWidth": 1,
+    "footprintHeight": 1,
+    "entranceOffsets": [],
+    "constructionCost": 34000,
+    "dailyOperatingCost": 0,
+    "demolitionRefundFraction": 0.2,
+    "art": "decor/tree_oak",
+    "requiresPathAdjacency": false,
+    "scenery": 0.45,
+    "sceneryRadius": 3
+  },
+  {
+    "id": "tree_pine",
+    "nameKey": "building.treePine",
+    "summaryKey": "building.treePine.summary",
+    "category": "decoration",
+    "footprintWidth": 1,
+    "footprintHeight": 1,
+    "entranceOffsets": [],
+    "constructionCost": 30000,
+    "dailyOperatingCost": 0,
+    "demolitionRefundFraction": 0.2,
+    "art": "decor/tree_pine",
+    "requiresPathAdjacency": false,
+    "scenery": 0.4,
+    "sceneryRadius": 3
+  },
+  {
+    "id": "flower_bed",
+    "nameKey": "building.flowerBed",
+    "summaryKey": "building.flowerBed.summary",
+    "category": "decoration",
+    "footprintWidth": 1,
+    "footprintHeight": 1,
+    "entranceOffsets": [],
+    "constructionCost": 18000,
+    "dailyOperatingCost": 100,
+    "demolitionRefundFraction": 0.2,
+    "art": "decor/flower_bed",
+    "requiresPathAdjacency": false,
+    "scenery": 0.38,
+    "sceneryRadius": 2
+  },
+  {
+    "id": "hedge",
+    "nameKey": "building.hedge",
+    "summaryKey": "building.hedge.summary",
+    "category": "decoration",
+    "footprintWidth": 1,
+    "footprintHeight": 1,
+    "entranceOffsets": [],
+    "constructionCost": 12000,
+    "dailyOperatingCost": 0,
+    "demolitionRefundFraction": 0.2,
+    "art": "decor/hedge",
+    "requiresPathAdjacency": false,
+    "scenery": 0.18,
+    "sceneryRadius": 1
+  },
+  {
+    "id": "bench",
+    "nameKey": "building.bench",
+    "summaryKey": "building.bench.summary",
+    "category": "decoration",
+    "footprintWidth": 1,
+    "footprintHeight": 1,
+    "entranceOffsets": [],
+    "constructionCost": 24000,
+    "dailyOperatingCost": 0,
+    "demolitionRefundFraction": 0.3,
+    "art": "decor/bench",
+    "requiresPathAdjacency": false,
+    "scenery": 0.14,
+    "sceneryRadius": 1
+  },
+  {
+    "id": "litter_bin",
+    "nameKey": "building.litterBin",
+    "summaryKey": "building.litterBin.summary",
+    "category": "decoration",
+    "footprintWidth": 1,
+    "footprintHeight": 1,
+    "entranceOffsets": [],
+    "constructionCost": 16000,
+    "dailyOperatingCost": 200,
+    "demolitionRefundFraction": 0.3,
+    "art": "decor/bin",
+    "requiresPathAdjacency": false,
+    "scenery": 0.02,
+    "sceneryRadius": 1
+  },
+  {
+    "id": "lamp_post",
+    "nameKey": "building.lampPost",
+    "summaryKey": "building.lampPost.summary",
+    "category": "decoration",
+    "footprintWidth": 1,
+    "footprintHeight": 1,
+    "entranceOffsets": [],
+    "constructionCost": 42000,
+    "dailyOperatingCost": 300,
+    "demolitionRefundFraction": 0.3,
+    "art": "decor/lamp",
+    "requiresPathAdjacency": false,
+    "scenery": 0.1,
+    "sceneryRadius": 2
+  }
+]

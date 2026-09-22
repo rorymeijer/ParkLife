@@ -1,0 +1,144 @@
+[
+  {
+    "id": "acc_treehouse",
+    "nameKey": "research.treehouses",
+    "summaryKey": "research.treehouses.summary",
+    "category": "accommodation",
+    "costPerWeek": 180000,
+    "weeksRequired": 6,
+    "prerequisites": [],
+    "unlocksBuildings": [
+      "treehouse_premium_4"
+    ]
+  },
+  {
+    "id": "acc_waterfront",
+    "nameKey": "research.waterfront",
+    "summaryKey": "research.waterfront.summary",
+    "category": "accommodation",
+    "costPerWeek": 210000,
+    "weeksRequired": 7,
+    "prerequisites": [],
+    "unlocksBuildings": [
+      "lodge_waterfront_6"
+    ]
+  },
+  {
+    "id": "acc_vip",
+    "nameKey": "research.vipVillas",
+    "summaryKey": "research.vipVillas.summary",
+    "category": "accommodation",
+    "costPerWeek": 320000,
+    "weeksRequired": 10,
+    "prerequisites": [
+      "acc_waterfront"
+    ],
+    "unlocksBuildings": [
+      "villa_vip_8"
+    ]
+  },
+  {
+    "id": "food_pancake",
+    "nameKey": "research.pancakeHouse",
+    "summaryKey": "research.pancakeHouse.summary",
+    "category": "restaurants",
+    "costPerWeek": 140000,
+    "weeksRequired": 5,
+    "prerequisites": [],
+    "unlocksBuildings": [
+      "pancake_house"
+    ]
+  },
+  {
+    "id": "act_minigolf",
+    "nameKey": "research.miniGolf",
+    "summaryKey": "research.miniGolf.summary",
+    "category": "entertainment",
+    "costPerWeek": 110000,
+    "weeksRequired": 4,
+    "prerequisites": [],
+    "unlocksBuildings": [
+      "minigolf"
+    ]
+  },
+  {
+    "id": "act_bikes",
+    "nameKey": "research.bicycleHire",
+    "summaryKey": "research.bicycleHire.summary",
+    "category": "entertainment",
+    "costPerWeek": 90000,
+    "weeksRequired": 3,
+    "prerequisites": [],
+    "unlocksBuildings": [
+      "bike_rental"
+    ]
+  },
+  {
+    "id": "act_kidsclub",
+    "nameKey": "research.kidsClub",
+    "summaryKey": "research.kidsClub.summary",
+    "category": "entertainment",
+    "costPerWeek": 160000,
+    "weeksRequired": 6,
+    "prerequisites": [
+      "act_minigolf"
+    ],
+    "unlocksBuildings": [
+      "kids_club"
+    ]
+  },
+  {
+    "id": "infra_cycling",
+    "nameKey": "research.cyclePaths",
+    "summaryKey": "research.cyclePaths.summary",
+    "category": "infrastructure",
+    "costPerWeek": 100000,
+    "weeksRequired": 4,
+    "prerequisites": [],
+    "unlocksBuildings": []
+  },
+  {
+    "id": "infra_bridges",
+    "nameKey": "research.bridges",
+    "summaryKey": "research.bridges.summary",
+    "category": "infrastructure",
+    "costPerWeek": 150000,
+    "weeksRequired": 5,
+    "prerequisites": [
+      "infra_cycling"
+    ],
+    "unlocksBuildings": []
+  },
+  {
+    "id": "sus_solar",
+    "nameKey": "research.solarPanels",
+    "summaryKey": "research.solarPanels.summary",
+    "category": "sustainability",
+    "costPerWeek": 240000,
+    "weeksRequired": 8,
+    "prerequisites": [],
+    "unlocksBuildings": []
+  },
+  {
+    "id": "sus_heatpump",
+    "nameKey": "research.heatPumps",
+    "summaryKey": "research.heatPumps.summary",
+    "category": "sustainability",
+    "costPerWeek": 290000,
+    "weeksRequired": 9,
+    "prerequisites": [
+      "sus_solar"
+    ],
+    "unlocksBuildings": []
+  },
+  {
+    "id": "ops_housekeeping",
+    "nameKey": "research.housekeepingTraining",
+    "summaryKey": "research.housekeepingTraining.summary",
+    "category": "operations",
+    "costPerWeek": 120000,
+    "weeksRequired": 4,
+    "prerequisites": [],
+    "unlocksBuildings": []
+  }
+]
