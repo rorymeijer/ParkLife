@@ -81,6 +81,13 @@ jobs:
         with:
           name: parklife-screenshots
           path: docs/screenshots/*.png
+          if-no-files-found: error
+      - name: Upload app logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parklife-screenshot-logs
+          path: .build/screenshot-logs/*.log
           if-no-files-found: warn
       - name: Commit the images
         run: |

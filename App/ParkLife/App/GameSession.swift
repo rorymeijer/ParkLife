@@ -82,6 +82,15 @@ final class GameSession: ObservableObject {
 
             refreshSnapshot()
             isReady = true
+
+            #if DEBUG
+            if ScreenshotOptions.isActive {
+                // The capture script waits for this line rather than guessing how long the
+                // warm-up takes. Without it a slow simulator gets photographed mid-load.
+                print("PARKLIFE_SCREENSHOT_READY")
+                fflush(stdout)
+            }
+            #endif
         } catch {
             loadError = String(describing: error)
             logger.error("Could not start a game: \(String(describing: error))")
@@ -97,7 +106,18 @@ final class GameSession: ObservableObject {
         // screenshot and, more to the point, would not show that any of this works.
         let days = ScreenshotOptions.warmupDays
         if days > 0 {
-            engine.run(ticks: days * GameDate.minutesPerDay)
+            // A day at a time, with progress on stdout: if the capture script ever times out
+            // waiting for the ready marker, the log says how far the warm-up actually got
+            // instead of leaving us to guess.
+            let started = Date()
+            for day in 1...days {
+                engine.run(ticks: GameDate.minutesPerDay)
+                if day % 5 == 0 || day == days {
+                    let elapsed = Date().timeIntervalSince(started)
+                    print(String(format: "PARKLIFE_WARMUP day %d/%d (%.1fs)", day, days, elapsed))
+                    fflush(stdout)
+                }
+            }
             ParkLog.shared.info(.sim, "Screenshot warm-up: \(days) simulated days")
         }
         engine.submit(.setSpeed(.paused))
