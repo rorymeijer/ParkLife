@@ -8,47 +8,36 @@ struct HUDView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Binding var showingDebugMenu: Bool
 
-    /// iPad has room for the full set of figures; a phone does not.
-    ///
-    /// Stopping the statistics from wrapping fixed the unreadable one-character-per-line cash
-    /// balance, but on a phone the same row then simply ran off the edge and took the cash
-    /// figure with it. The bar has to carry fewer figures on a narrow screen, not smaller ones.
+    /// iPad has room for the full set of figures on one line; a phone does not.
     private var isWide: Bool { sizeClass == .regular }
 
     var body: some View {
         if let hud = session.snapshot?.hud {
             VStack(spacing: 6) {
-                HStack(spacing: 10) {
-                    statistic(
-                        symbol: "eurosign.circle.fill",
-                        value: hud.cash.compactDescription,
-                        label: NSLocalizedString("hud.cash", comment: ""),
-                        tint: hud.cash.isNegative ? .red : .primary
-                    )
+                // A VStack is as wide as its widest child, and this bar was it: with the figures
+                // and six speed buttons on one line it demanded roughly 470pt against a phone's
+                // ~378pt. The whole overlay column then took that width and was centred, clipping
+                // the inspector and the navigation bar off both edges along with the HUD. On a
+                // narrow screen the two halves get a line each instead.
+                Group {
                     if isWide {
-                        Divider().frame(height: 26)
-                        statistic(
-                            symbol: "person.3.fill",
-                            value: "\(hud.guestsOnSite)",
-                            label: NSLocalizedString("hud.guests", comment: "")
-                        )
+                        HStack(spacing: 10) {
+                            statistics(hud)
+                            Spacer(minLength: 4)
+                            speedControls
+                        }
+                    } else {
+                        VStack(spacing: 6) {
+                            HStack(spacing: 10) {
+                                statistics(hud)
+                                Spacer(minLength: 4)
+                            }
+                            HStack(spacing: 10) {
+                                Spacer(minLength: 0)
+                                speedControls
+                            }
+                        }
                     }
-                    Divider().frame(height: 26)
-                    statistic(
-                        symbol: "bed.double.fill",
-                        value: "\(hud.occupancyPercent)%",
-                        label: NSLocalizedString("hud.occupancy", comment: "")
-                    )
-                    if isWide {
-                        Divider().frame(height: 26)
-                        statistic(
-                            symbol: "star.fill",
-                            value: String(format: "%.1f", hud.reputationStars),
-                            label: NSLocalizedString("hud.rating", comment: "")
-                        )
-                    }
-                    Spacer(minLength: 4)
-                    speedControls
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -73,6 +62,10 @@ struct HUDView: View {
                     }
                 }
                 .font(.caption)
+                // Shrink rather than run off the edge: the date and weather strings are
+                // localised and their length is not something this layout can assume.
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(.thinMaterial, in: Capsule())
@@ -81,8 +74,42 @@ struct HUDView: View {
         }
     }
 
+    /// The figures themselves. Guests and rating are dropped on a phone: a narrow bar needs
+    /// fewer figures, not smaller ones.
+    @ViewBuilder
+    private func statistics(_ hud: WorldSnapshot.HUD) -> some View {
+        statistic(
+            symbol: "eurosign.circle.fill",
+            value: hud.cash.compactDescription,
+            label: NSLocalizedString("hud.cash", comment: ""),
+            tint: hud.cash.isNegative ? .red : .primary
+        )
+        if isWide {
+            Divider().frame(height: 26)
+            statistic(
+                symbol: "person.3.fill",
+                value: "\(hud.guestsOnSite)",
+                label: NSLocalizedString("hud.guests", comment: "")
+            )
+        }
+        Divider().frame(height: 26)
+        statistic(
+            symbol: "bed.double.fill",
+            value: "\(hud.occupancyPercent)%",
+            label: NSLocalizedString("hud.occupancy", comment: "")
+        )
+        if isWide {
+            Divider().frame(height: 26)
+            statistic(
+                symbol: "star.fill",
+                value: String(format: "%.1f", hud.reputationStars),
+                label: NSLocalizedString("hud.rating", comment: "")
+            )
+        }
+    }
+
     private var speedControls: some View {
-        HStack(spacing: isWide ? 6 : 3) {
+        HStack(spacing: isWide ? 6 : 4) {
             ForEach(GameSpeed.allCases, id: \.self) { speed in
                 Button {
                     session.submit(.setSpeed(speed))
