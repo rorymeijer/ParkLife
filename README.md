@@ -39,7 +39,7 @@ below and [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full picture.
 | `ParkLifeCore` — simulation, economy, pathfinding, persistence | Implemented, ~10,600 lines, 219 tests across 33 suites |
 | Content catalog — 31 buildings, 4 path types, 6 group archetypes, 3 maps, 3 scenarios, 12 research projects | Implemented as JSON |
 | `App/ParkLife` — SwiftUI + SpriteKit | Implemented, not yet compiled (no Xcode in the development container) |
-| CI — `swift build`, `swift test`, `xcodebuild` | Configured, runs on first push |
+| Verification — `./Tools/verify.sh` | Local, no CI service involved |
 
 ## Getting started
 
@@ -53,6 +53,22 @@ swift test
 
 # The game itself:
 open App/ParkLife.xcodeproj    # requires Xcode 16+, iOS 17+ target
+```
+
+### Verifying a change
+
+```sh
+./Tools/verify.sh          # structure + catalog + core build + core tests
+./Tools/verify.sh --app    # …and build the iOS app (needs Xcode)
+./Tools/verify.sh --quick  # structure + catalog only, no compiler needed
+```
+
+There is no CI service. `verify.sh` runs whatever the machine can run, **names what it skipped**,
+and exits non-zero on the first real failure — so a pass never implies more than was checked.
+If you want it enforced before every push:
+
+```sh
+ln -s ../../Tools/hooks/pre-push .git/hooks/pre-push
 ```
 
 The Xcode project references the package at the repository root as a local Swift package, so
@@ -100,15 +116,9 @@ Read more: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
 The container this repository was developed in has **no Swift toolchain** (swift.org is blocked by
 the environment's network policy) and no macOS. So:
 
-* `swift build` and `swift test` **have not been run here**. The code is written to compile, and
-  `.github/workflows/ci.yml` runs the real build and the full test suite on macOS *and* Linux.
-  Treat CI, not this README, as the source of truth — **once it runs**.
-* **GitHub Actions is not currently executing on this repository.** The first push created a run
-  whose four jobs all failed within eight seconds, with zero steps executed and no logs — the
-  signature of runners never being allocated, not of a build error. Subsequent pushes create no
-  run at all. Enable Actions for the repository (Settings → Actions → General) and check the
-  account's Actions billing/spending limit; the workflow itself parses fine, since GitHub created
-  its four jobs from it.
+* `swift build` and `swift test` **have not been run here**. The code is written to compile, but
+  nothing has proved it. The first thing to do on a Mac is `./Tools/verify.sh --app` and fix
+  whatever the compiler reports. Until then, treat the build as unverified.
 * `Tools/check_sources.py` runs everywhere and does what can be done without a type checker:
   brace/paren balance with a real lexer, `#if`/`#endif` balance, non-exhaustive switches over the
   project's own enums, duplicate top-level declarations, references to types that are declared
@@ -131,7 +141,7 @@ App/ParkLife.xcodeproj     The iOS app
 App/ParkLife/
   App/ Rendering/ UI/      SwiftUI + SpriteKit, consuming snapshots only
 docs/                      Architecture, simulation, save format, roadmap, ADRs, screenshots
-Tools/                     Source checker and the screenshot mockup generator
+Tools/                     verify.sh, the source checker, the screenshot mockup generator
 ```
 
 ## Licence and assets

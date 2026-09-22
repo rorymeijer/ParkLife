@@ -51,7 +51,7 @@ Full reasoning: [`adr/0001-technology-stack.md`](adr/0001-technology-stack.md),
 
 **Hard rule (Rule 3):** `ParkLifeCore` does not `import SwiftUI`, `SpriteKit`, `UIKit` or
 `CloudKit`. It compiles and its tests run on any platform with a Swift toolchain, including
-Linux CI. Dependency direction is one-way: App → Core. Core never calls back into the App;
+Linux. Dependency direction is one-way: App → Core. Core never calls back into the App;
 it publishes immutable **events** and **snapshots** that the App consumes.
 
 ### Why the core is a separate SwiftPM target
@@ -220,7 +220,7 @@ ParkLife/
 │       └── Assets.xcassets        Placeholder art (original, see ASSET POLICY)
 ├── Tools/mockup/                  Screenshot generator (design mockups)
 ├── docs/                          This documentation + screenshots
-└── .github/workflows/ci.yml       swift build + swift test on macOS and Linux
+└── Tools/verify.sh                One local command: structure, build, tests, app
 ```
 
 ## 12. Localization & accessibility
@@ -257,11 +257,15 @@ The container this work was produced in has **no Swift toolchain** (`swift.org` 
 by the egress policy) and no macOS/Xcode. Therefore `swift build` / `swift test` and any
 simulator screenshot **could not be executed here**. Mitigations actually in place:
 
-* `.github/workflows/ci.yml` runs `swift build` + `swift test` on macOS *and* Linux, plus
-  `xcodebuild` for the iOS app target, so the very first push is verified by CI.
-* `Tools/check_sources.py` performs a structural pass over every Swift file (brace/paren/
-  bracket balance, duplicate type declarations, unresolved type references, files missing
-  from the package) and is also run in CI.
+* `Tools/verify.sh` is the single verification entry point: structure, content catalog,
+  `swift build`, `swift test` and optionally `xcodebuild` for the app. It runs whatever the
+  machine can run and **names what it skipped**, so a pass never overstates what was checked.
+  There is no CI service; `Tools/hooks/pre-push` wires the same script into git for anyone who
+  wants it enforced.
+* `Tools/check_sources.py` performs a structural pass over every Swift file: brace/paren/bracket
+  balance with a real lexer, `#if`/`#endif` balance, non-exhaustive switches over the project's
+  own enums, duplicate type declarations and unresolved type references. It is itself verified
+  against fixtures that fail on purpose.
 * Screenshots in `docs/screenshots/` are **design mockups** rendered from the *same* JSON
   catalog the game loads — they are labelled as mockups, not simulator captures.
 

@@ -15,7 +15,7 @@ them blindly.
 | Layer | Chosen | Rejected alternative | Reason |
 |---|---|---|---|
 | Language | Swift | Objective-C, C++ core | Value types + `Codable` + actors map directly onto a deterministic, serialisable simulation |
-| Simulation | Plain Swift library, Foundation only | GameplayKit entity/component system | `GKEntity`/`GKComponent` are reference types that are not `Codable`, not deterministic across OS versions, and unavailable on Linux CI. We need save/replay/testability more than we need their convenience. `GKGridGraph` A\* likewise cannot do incremental invalidation or budgeted async searches. |
+| Simulation | Plain Swift library, Foundation only | GameplayKit entity/component system | `GKEntity`/`GKComponent` are reference types that are not `Codable`, not deterministic across OS versions, and unavailable on Linux. We need save/replay/testability more than we need their convenience. `GKGridGraph` A\* likewise cannot do incremental invalidation or budgeted async searches. |
 | World rendering | SpriteKit | Raw Metal; SceneKit/RealityKit; SwiftUI Canvas | See ADR 0002 |
 | UI | SwiftUI | UIKit | Touch-first layout, Dynamic Type, VoiceOver, size-class adaptation and state binding come free; a tycoon HUD is a data-driven form, which is SwiftUI's strength |
 | Persistence | Codable JSON snapshot | Core Data / SwiftData | See ADR 0003 |
@@ -29,7 +29,7 @@ imports while still giving Instruments-visible signposts on device.
 
 ## Consequences
 
-* The simulation compiles and tests on Linux → fast CI, no simulator needed for logic tests.
+* The simulation compiles and tests on Linux → fast feedback, no simulator needed for logic tests.
 * We write our own A\*, heap, RNG and ECS-lite storage (~600 lines total, fully tested).
 * We cannot use GameplayKit's `GKAgent` steering; guest movement is hand-written path
   following, which we need anyway for deterministic replay.
