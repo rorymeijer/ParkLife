@@ -39,7 +39,7 @@ below and [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full picture.
 | `ParkLifeCore` — simulation, economy, pathfinding, persistence | Implemented, ~10,600 lines, 219 tests across 33 suites |
 | Content catalog — 31 buildings, 4 path types, 6 group archetypes, 3 maps, 3 scenarios, 12 research projects | Implemented as JSON |
 | `App/ParkLife` — SwiftUI + SpriteKit | Implemented, not yet compiled (no Xcode in the development container) |
-| Verification — `./Tools/verify.sh`, run locally and by CI | Configured; CI has not yet executed on this repo |
+| Verification — `./Tools/verify.sh`, run locally and by CI | Configured; CI blocked by account billing, see below |
 
 ## Getting started
 
@@ -120,10 +120,16 @@ the environment's network policy) and no macOS. So:
 * `swift build` and `swift test` **have not been run here**. The code is written to compile, but
   nothing has proved it. Run `./Tools/verify.sh --app` on a Mac, or let CI do it, and fix
   whatever the compiler reports. Until then, treat the build as unverified.
-* **Heads up on Actions:** an earlier push created a workflow run whose jobs all failed within
-  eight seconds with zero steps executed and no logs — runners were never allocated, which is an
-  account/repository setting rather than anything wrong with the workflow. If that happens again,
-  check Settings → Actions → General and the account's Actions billing/spending limit.
+* **Actions is currently blocked on this account.** Every job across four runs failed within
+  seconds with zero steps executed. GitHub's own annotation on each one says:
+
+  > The job was not started because recent account payments have failed or your spending limit
+  > needs to be increased. Please check the 'Billing & plans' section in your settings.
+
+  The repository is public, so standard GitHub-hosted runners are free for it — but this block is
+  applied **account-wide**, not per repository, so public visibility does not lift it. Fix the
+  payment method or spending limit under Settings → Billing & plans, then re-run the workflow
+  from the Actions tab (it has a `workflow_dispatch` trigger, so no new commit is needed).
 * `Tools/check_sources.py` runs everywhere and does what can be done without a type checker:
   brace/paren balance with a real lexer, `#if`/`#endif` balance, non-exhaustive switches over the
   project's own enums, duplicate top-level declarations, references to types that are declared

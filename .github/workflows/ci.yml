@@ -15,7 +15,7 @@ jobs:
   # Fast feedback, no toolchain needed: source structure and content catalog.
   structure:
     name: Structure
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Verify (quick)
@@ -24,7 +24,7 @@ jobs:
   # Proves the simulation core really is platform-agnostic: Foundation only, no Apple frameworks.
   core-linux:
     name: ParkLifeCore (Linux)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container: swift:6.3.3-noble
     steps:
       - uses: actions/checkout@v4

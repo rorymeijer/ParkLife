@@ -79,8 +79,10 @@ that nothing is silently dropped (Rule 12).
       nothing here has been compiled. `./Tools/verify.sh --quick` passes, including switch
       exhaustiveness over every enum in the project. **Next action: run `./Tools/verify.sh --app`
       on a Mac with Xcode 16, or read the CI result, and fix whatever the compiler finds.**
-      Note: an earlier run allocated no runners at all (four jobs, zero steps, no logs), which is
-      a repository/billing setting rather than a workflow problem.
+      Note: CI cannot run yet. Every job so far failed in seconds with zero steps, annotated by
+      GitHub as *"The job was not started because recent account payments have failed or your
+      spending limit needs to be increased."* That block is account-wide and is not lifted by the
+      repository being public. Nothing in the workflow file is implicated.
 - [~] **App layer.** SwiftUI + SpriteKit is written — scene, node pools, camera, HUD, build bar,
       inspector and ten panels — but unverified for the same reason.
 - [~] **Screenshots.** `docs/screenshots/` holds design mockups generated from the real catalog and
