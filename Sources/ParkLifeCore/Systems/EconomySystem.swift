@@ -137,7 +137,7 @@ public enum EconomySystem: SimulationSystem {
         return true
     }
 
-    public static var totalDebt: (World) -> Money {
-        { world in Money(cents: world.loans.reduce(0) { $0 + $1.outstanding.cents }) }
+    public static func totalDebt(in world: World) -> Money {
+        Money(cents: world.loans.reduce(0) { $0 + $1.outstanding.cents })
     }
 }

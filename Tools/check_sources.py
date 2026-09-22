@@ -131,6 +131,176 @@ def strip_code(text):
     return "".join(out)
 
 
+ENUM_DECL_RE = re.compile(
+    r"^\s*(?:public\s+|internal\s+|private\s+|fileprivate\s+|indirect\s+)*enum\s+([A-Za-z_][A-Za-z0-9_]*)"
+)
+CASE_DECL_RE = re.compile(r"^\s*case\s+([A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)")
+
+
+def collect_enum_cases(code):
+    """Map each enum name to the set of its case names, by brace depth."""
+    enums = {}
+    stack = []          # (enum name or None, depth at which it opened)
+    depth = 0
+    for line in code.splitlines():
+        match = ENUM_DECL_RE.match(line)
+        opening = line.count("{")
+        closing = line.count("}")
+        if match and opening:
+            name = match.group(1)
+            enums.setdefault(name, set())
+            stack.append((name, depth))
+        elif opening and not match:
+            stack.append((None, depth))
+        depth += opening - closing
+        while stack and depth <= stack[-1][1]:
+            stack.pop()
+        if stack and stack[-1][0]:
+            case_match = CASE_DECL_RE.match(line)
+            if case_match and "(" not in line.split("case", 1)[1].split("=")[0][:40]:
+                for name in case_match.group(1).split(","):
+                    enums[stack[-1][0]].add(name.strip())
+            elif case_match:
+                # Case with an associated value: `case walkingTo(BuildingID)`
+                first = line.split("case", 1)[1].strip()
+                enums[stack[-1][0]].add(re.split(r"[(\s:=,]", first)[0])
+    return enums
+
+
+SWITCH_RE = re.compile(r"^(\s*)(?:\w+\s*=\s*)?switch\s+.+\{\s*$")
+
+
+def split_top_level(text, separator=","):
+    """Split on `separator`, ignoring anything inside brackets."""
+    parts = []
+    depth = 0
+    current = ""
+    for ch in text:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        if ch == separator and depth == 0:
+            parts.append(current)
+            current = ""
+        else:
+            current += ch
+    parts.append(current)
+    return [p.strip() for p in parts if p.strip()]
+
+
+def case_labels(text):
+    """
+    Labels from a case pattern such as
+        `.walkingTo(let id), .queueing(let id)` or `.number(let v)` or `.a, .b,\n .c`.
+    Returns None when any pattern is not a plain leading-dot case (a `where` clause, a tuple,
+    a bound value), because those cannot be checked for exhaustiveness this way.
+    """
+    if "where" in text:
+        return None
+    labels = []
+    for part in split_top_level(text):
+        if not part.startswith("."):
+            return None
+        name = re.split(r"[(\s:]", part[1:])[0]
+        if not name:
+            return None
+        labels.append(name)
+    return labels
+
+
+def check_switch_exhaustiveness(path, code, enum_cases):
+    """
+    Flags a switch whose case labels are all leading-dot patterns matching exactly one known
+    enum, that has no `default`, and that misses cases. A non-exhaustive switch is a compile
+    error in Swift, and it is the class of mistake a checker without a type system can still
+    catch.
+    """
+    problems = []
+    lines = code.splitlines()
+    index = 0
+    while index < len(lines):
+        match = SWITCH_RE.match(lines[index])
+        if not match:
+            index += 1
+            continue
+        indent = len(match.group(1))
+        labels = []
+        has_default = False
+        unparseable = False
+        cursor = index + 1
+        depth = 1
+        start_line = index + 1
+
+        while cursor < len(lines) and depth > 0:
+            line = lines[cursor]
+            depth += line.count("{") - line.count("}")
+            if depth <= 0:
+                break
+            stripped = line.strip()
+            line_indent = len(line) - len(line.lstrip())
+            # Swift style puts `case` at the same indentation as `switch`; allow both.
+            if line_indent in (indent, indent + 4):
+                if stripped.startswith("default"):
+                    has_default = True
+                elif stripped.startswith("case "):
+                    # A case label may wrap over several lines; gather until the pattern's
+                    # closing colon at bracket depth zero.
+                    pattern = stripped[len("case "):]
+                    scan = cursor
+                    while _colon_index(pattern) is None and scan + 1 < len(lines):
+                        scan += 1
+                        pattern += " " + lines[scan].strip()
+                    colon = _colon_index(pattern)
+                    if colon is None:
+                        unparseable = True
+                    else:
+                        found = case_labels(pattern[:colon])
+                        if found is None:
+                            unparseable = True
+                        else:
+                            labels.extend(found)
+                    cursor = scan
+            cursor += 1
+        index = cursor + 1
+
+        if has_default or unparseable or len(labels) < 2:
+            continue
+        label_set = set(labels)
+        candidates = [name for name, cases in enum_cases.items() if label_set <= cases]
+        if len(candidates) != 1:
+            continue
+        missing = enum_cases[candidates[0]] - label_set
+        if missing:
+            problems.append(
+                f"{path}:{start_line}: switch over '{candidates[0]}' has no default and is "
+                f"missing: {', '.join(sorted(missing))}"
+            )
+    return problems
+
+
+def _colon_index(text):
+    """Index of the first `:` outside any bracket, or None."""
+    depth = 0
+    for position, ch in enumerate(text):
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == ":" and depth == 0:
+            return position
+    return None
+
+
+def check_conditional_compilation(path, code):
+    """`#if` without a matching `#endif` fails to compile and is invisible to a brace check."""
+    opens = len(re.findall(r"^\s*#if\b", code, flags=re.M))
+    closes = len(re.findall(r"^\s*#endif\b", code, flags=re.M))
+    if opens != closes:
+        return [f"{path}: {opens} '#if' but {closes} '#endif'"]
+    return []
+
+
 def check_balance(path, code):
     problems = []
     pairs = {")": "(", "]": "[", "}": "{"}
@@ -173,6 +343,8 @@ def main():
     problems = []
     declarations = {}
     references = {}
+    all_enum_cases = {}
+    pending_switches = []
 
     for path in swift_files:
         rel = os.path.relpath(path, ROOT)
@@ -180,6 +352,10 @@ def main():
             text = handle.read()
         code = strip_code(text)
         problems.extend(check_balance(rel, code))
+        problems.extend(check_conditional_compilation(rel, code))
+        file_enums = collect_enum_cases(code)
+        all_enum_cases.update(file_enums)
+        pending_switches.append((rel, code))
 
         for line in code.splitlines():
             match = DECL_RE.match(line)
@@ -196,6 +372,10 @@ def main():
 
         for name in MEMBER_REF_RE.findall(code):
             references.setdefault(name, set()).add(rel)
+
+    # Switch exhaustiveness needs every enum in the module, so it runs after the first pass.
+    for rel, code in pending_switches:
+        problems.extend(check_switch_exhaustiveness(rel, code, all_enum_cases))
 
     # Duplicate *top-level* declarations of the same name. Nested types (`CodingKeys`,
     # `Identifier`, a private `Node`) legitimately repeat across files.

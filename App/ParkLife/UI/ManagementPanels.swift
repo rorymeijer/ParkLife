@@ -15,7 +15,7 @@ struct FinancePanel: View {
                     LabeledContent(NSLocalizedString("finance.netWorth", comment: ""), value: world.netWorth.description)
                     LabeledContent(
                         NSLocalizedString("finance.debt", comment: ""),
-                        value: Money(cents: world.loans.reduce(0) { $0 + $1.outstanding.cents }).description
+                        value: EconomySystem.totalDebt(in: world).description
                     )
                     LabeledContent(
                         NSLocalizedString("finance.profit7", comment: ""),
