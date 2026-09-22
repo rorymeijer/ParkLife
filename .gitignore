@@ -1,0 +1,38 @@
+# ---- Xcode ----
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ---- Swift Package Manager ----
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# ---- Signing / secrets (never commit) ----
+*.mobileprovision
+*.p12
+*.cer
+*.certSigningRequest
+fastlane/report.xml
+fastlane/Preview.html
+
+# ---- Tooling ----
+node_modules/
+Tools/mockup/out/
+.DS_Store
+*.log
+
+# ---- Scratch ----
+/tmp/

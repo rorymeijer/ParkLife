@@ -1,0 +1,113 @@
+[
+  {
+    "id": "nl-zandheuvel",
+    "nameKey": "map.zandheuvel",
+    "regionID": "nl",
+    "width": 96,
+    "height": 96,
+    "generationSeed": 884217366551,
+    "entranceX": 48,
+    "entranceY": 91,
+    "landValuePerTile": 32000,
+    "water": [
+      {
+        "x": 8,
+        "y": 10,
+        "width": 26,
+        "height": 18
+      }
+    ],
+    "forests": [
+      {
+        "x": 76,
+        "y": 22,
+        "radius": 15,
+        "density": 0.62
+      },
+      {
+        "x": 20,
+        "y": 62,
+        "radius": 12,
+        "density": 0.5
+      },
+      {
+        "x": 62,
+        "y": 74,
+        "radius": 9,
+        "density": 0.42
+      }
+    ],
+    "climateMeanTemperature": 10.8,
+    "climateSeasonalAmplitude": 8.6,
+    "climateRainProbability": 0.42,
+    "localDemand": 1.0
+  },
+  {
+    "id": "nl-meerzicht",
+    "nameKey": "map.meerzicht",
+    "regionID": "nl",
+    "width": 112,
+    "height": 112,
+    "generationSeed": 553118920477,
+    "entranceX": 12,
+    "entranceY": 56,
+    "landValuePerTile": 41000,
+    "water": [
+      {
+        "x": 48,
+        "y": 14,
+        "width": 52,
+        "height": 44
+      }
+    ],
+    "forests": [
+      {
+        "x": 26,
+        "y": 88,
+        "radius": 16,
+        "density": 0.55
+      }
+    ],
+    "climateMeanTemperature": 10.4,
+    "climateSeasonalAmplitude": 8.9,
+    "climateRainProbability": 0.45,
+    "localDemand": 1.08
+  },
+  {
+    "id": "be-hoogwoud",
+    "nameKey": "map.hoogwoud",
+    "regionID": "be",
+    "width": 112,
+    "height": 112,
+    "generationSeed": 901774223118,
+    "entranceX": 56,
+    "entranceY": 106,
+    "landValuePerTile": 28500,
+    "water": [
+      {
+        "x": 70,
+        "y": 60,
+        "width": 14,
+        "height": 40
+      }
+    ],
+    "forests": [
+      {
+        "x": 40,
+        "y": 30,
+        "radius": 24,
+        "density": 0.72
+      },
+      {
+        "x": 86,
+        "y": 84,
+        "radius": 14,
+        "density": 0.6
+      }
+    ],
+    "climateMeanTemperature": 10.1,
+    "climateSeasonalAmplitude": 9.4,
+    "climateRainProbability": 0.47,
+    "localDemand": 0.94
+  }
+]

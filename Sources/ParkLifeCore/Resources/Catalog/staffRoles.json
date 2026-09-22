@@ -1,0 +1,85 @@
+[
+  {
+    "id": "reception",
+    "nameKey": "role.reception",
+    "monthlySalary": 245000,
+    "handlesTasks": [
+      "staffReception"
+    ],
+    "walkSpeed": 1.4,
+    "art": "staff/reception"
+  },
+  {
+    "id": "housekeeping",
+    "nameKey": "role.housekeeping",
+    "monthlySalary": 218000,
+    "handlesTasks": [
+      "cleanUnit",
+      "cleanFacility"
+    ],
+    "walkSpeed": 1.45,
+    "art": "staff/housekeeping"
+  },
+  {
+    "id": "maintenance",
+    "nameKey": "role.maintenance",
+    "monthlySalary": 272000,
+    "handlesTasks": [
+      "repairBuilding",
+      "inspectBuilding"
+    ],
+    "walkSpeed": 1.4,
+    "art": "staff/maintenance"
+  },
+  {
+    "id": "groundskeeper",
+    "nameKey": "role.groundskeeper",
+    "monthlySalary": 224000,
+    "handlesTasks": [
+      "emptyBin",
+      "landscaping"
+    ],
+    "walkSpeed": 1.35,
+    "art": "staff/grounds"
+  },
+  {
+    "id": "catering",
+    "nameKey": "role.catering",
+    "monthlySalary": 229000,
+    "handlesTasks": [
+      "staffFacility"
+    ],
+    "walkSpeed": 1.4,
+    "art": "staff/catering"
+  },
+  {
+    "id": "retail",
+    "nameKey": "role.retail",
+    "monthlySalary": 220000,
+    "handlesTasks": [
+      "staffFacility"
+    ],
+    "walkSpeed": 1.4,
+    "art": "staff/retail"
+  },
+  {
+    "id": "lifeguard",
+    "nameKey": "role.lifeguard",
+    "monthlySalary": 261000,
+    "handlesTasks": [
+      "staffFacility"
+    ],
+    "walkSpeed": 1.5,
+    "art": "staff/lifeguard"
+  },
+  {
+    "id": "activities",
+    "nameKey": "role.activities",
+    "monthlySalary": 233000,
+    "handlesTasks": [
+      "staffFacility"
+    ],
+    "walkSpeed": 1.45,
+    "art": "staff/activities"
+  }
+]
