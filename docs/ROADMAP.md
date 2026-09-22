@@ -28,8 +28,10 @@ that nothing is silently dropped (Rule 12).
 - [x] Create the Xcode project and the SwiftPM package
 - [x] Add `.gitignore` that excludes build output and signing material
 - [x] Add tests from the very beginning
-- [x] `Tools/verify.sh` — one local command for structure, catalog, core build, core tests and
-      optionally the app, with an opt-in git pre-push hook (no CI service, by preference)
+- [x] `Tools/verify.sh` — one command for structure, catalog, core build, core tests and
+      optionally the app, with an opt-in git pre-push hook
+- [x] CI (`.github/workflows/ci.yml`) that invokes that same script on Linux and macOS, so a
+      green CI run and a green local run mean the same thing
 
 ### Phase 1 — Playable vertical slice
 
@@ -76,7 +78,9 @@ that nothing is silently dropped (Rule 12).
 - [~] **Verify the build.** The development container has no Swift toolchain and no Xcode, so
       nothing here has been compiled. `./Tools/verify.sh --quick` passes, including switch
       exhaustiveness over every enum in the project. **Next action: run `./Tools/verify.sh --app`
-      on a Mac with Xcode 16 and fix whatever the compiler finds.**
+      on a Mac with Xcode 16, or read the CI result, and fix whatever the compiler finds.**
+      Note: an earlier run allocated no runners at all (four jobs, zero steps, no logs), which is
+      a repository/billing setting rather than a workflow problem.
 - [~] **App layer.** SwiftUI + SpriteKit is written — scene, node pools, camera, HUD, build bar,
       inspector and ten panels — but unverified for the same reason.
 - [~] **Screenshots.** `docs/screenshots/` holds design mockups generated from the real catalog and
@@ -119,7 +123,7 @@ quietly dropped.
 
 | Item | Brief | Why not yet | Where it lands |
 |---|---|---|---|
-| Compiled, verified build | Rule 7 | No Swift toolchain or Xcode in the development container; swift.org is blocked by network policy | First run of `./Tools/verify.sh --app` on a Mac |
+| Compiled, verified build | Rule 7 | No Swift toolchain or Xcode in the development container; swift.org is blocked by network policy | First green CI run, or `./Tools/verify.sh --app` on a Mac |
 | Congestion-aware routing | §10 | Flow fields are deliberately static so they rebuild identically after a load; making them crowd-aware needs periodic rebuilds and a different determinism story | Phase 4, with vehicles |
 | Terrain editing | §9 | The brief says not to build it before the core is stable | Phase 4 |
 | Utilities as a network (electricity, water, sewage) | §20 | Currently billed as aggregate daily consumption, which is the "meaningful decisions without micromanagement" half of the requirement | Phase 3/4 |

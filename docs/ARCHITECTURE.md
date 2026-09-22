@@ -220,7 +220,8 @@ ParkLife/
 │       └── Assets.xcassets        Placeholder art (original, see ASSET POLICY)
 ├── Tools/mockup/                  Screenshot generator (design mockups)
 ├── docs/                          This documentation + screenshots
-└── Tools/verify.sh                One local command: structure, build, tests, app
+├── Tools/verify.sh                One command: structure, build, tests, app
+└── .github/workflows/ci.yml       Runs Tools/verify.sh on Linux and macOS
 ```
 
 ## 12. Localization & accessibility
@@ -260,8 +261,9 @@ simulator screenshot **could not be executed here**. Mitigations actually in pla
 * `Tools/verify.sh` is the single verification entry point: structure, content catalog,
   `swift build`, `swift test` and optionally `xcodebuild` for the app. It runs whatever the
   machine can run and **names what it skipped**, so a pass never overstates what was checked.
-  There is no CI service; `Tools/hooks/pre-push` wires the same script into git for anyone who
-  wants it enforced.
+  `.github/workflows/ci.yml` invokes that same script on Linux and macOS rather than repeating
+  the commands, so CI and a local run cannot drift apart. `Tools/hooks/pre-push` wires it into
+  git for anyone who wants it enforced before pushing.
 * `Tools/check_sources.py` performs a structural pass over every Swift file: brace/paren/bracket
   balance with a real lexer, `#if`/`#endif` balance, non-exhaustive switches over the project's
   own enums, duplicate type declarations and unresolved type references. It is itself verified

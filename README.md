@@ -39,7 +39,7 @@ below and [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full picture.
 | `ParkLifeCore` — simulation, economy, pathfinding, persistence | Implemented, ~10,600 lines, 219 tests across 33 suites |
 | Content catalog — 31 buildings, 4 path types, 6 group archetypes, 3 maps, 3 scenarios, 12 research projects | Implemented as JSON |
 | `App/ParkLife` — SwiftUI + SpriteKit | Implemented, not yet compiled (no Xcode in the development container) |
-| Verification — `./Tools/verify.sh` | Local, no CI service involved |
+| Verification — `./Tools/verify.sh`, run locally and by CI | Configured; CI has not yet executed on this repo |
 
 ## Getting started
 
@@ -63,7 +63,8 @@ open App/ParkLife.xcodeproj    # requires Xcode 16+, iOS 17+ target
 ./Tools/verify.sh --quick  # structure + catalog only, no compiler needed
 ```
 
-There is no CI service. `verify.sh` runs whatever the machine can run, **names what it skipped**,
+`.github/workflows/ci.yml` runs this same script on Linux and macOS, so CI and a local run mean
+exactly the same thing. `verify.sh` runs whatever the machine can run, **names what it skipped**,
 and exits non-zero on the first real failure — so a pass never implies more than was checked.
 If you want it enforced before every push:
 
@@ -117,8 +118,12 @@ The container this repository was developed in has **no Swift toolchain** (swift
 the environment's network policy) and no macOS. So:
 
 * `swift build` and `swift test` **have not been run here**. The code is written to compile, but
-  nothing has proved it. The first thing to do on a Mac is `./Tools/verify.sh --app` and fix
+  nothing has proved it. Run `./Tools/verify.sh --app` on a Mac, or let CI do it, and fix
   whatever the compiler reports. Until then, treat the build as unverified.
+* **Heads up on Actions:** an earlier push created a workflow run whose jobs all failed within
+  eight seconds with zero steps executed and no logs — runners were never allocated, which is an
+  account/repository setting rather than anything wrong with the workflow. If that happens again,
+  check Settings → Actions → General and the account's Actions billing/spending limit.
 * `Tools/check_sources.py` runs everywhere and does what can be done without a type checker:
   brace/paren balance with a real lexer, `#if`/`#endif` balance, non-exhaustive switches over the
   project's own enums, duplicate top-level declarations, references to types that are declared
