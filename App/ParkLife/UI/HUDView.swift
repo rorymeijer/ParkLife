@@ -5,7 +5,15 @@ import ParkLifeCore
 struct HUDView: View {
 
     @EnvironmentObject private var session: GameSession
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @Binding var showingDebugMenu: Bool
+
+    /// iPad has room for the full set of figures; a phone does not.
+    ///
+    /// Stopping the statistics from wrapping fixed the unreadable one-character-per-line cash
+    /// balance, but on a phone the same row then simply ran off the edge and took the cash
+    /// figure with it. The bar has to carry fewer figures on a narrow screen, not smaller ones.
+    private var isWide: Bool { sizeClass == .regular }
 
     var body: some View {
         if let hud = session.snapshot?.hud {
@@ -17,25 +25,29 @@ struct HUDView: View {
                         label: NSLocalizedString("hud.cash", comment: ""),
                         tint: hud.cash.isNegative ? .red : .primary
                     )
-                    Divider().frame(height: 26)
-                    statistic(
-                        symbol: "person.3.fill",
-                        value: "\(hud.guestsOnSite)",
-                        label: NSLocalizedString("hud.guests", comment: "")
-                    )
+                    if isWide {
+                        Divider().frame(height: 26)
+                        statistic(
+                            symbol: "person.3.fill",
+                            value: "\(hud.guestsOnSite)",
+                            label: NSLocalizedString("hud.guests", comment: "")
+                        )
+                    }
                     Divider().frame(height: 26)
                     statistic(
                         symbol: "bed.double.fill",
                         value: "\(hud.occupancyPercent)%",
                         label: NSLocalizedString("hud.occupancy", comment: "")
                     )
-                    Divider().frame(height: 26)
-                    statistic(
-                        symbol: "star.fill",
-                        value: String(format: "%.1f", hud.reputationStars),
-                        label: NSLocalizedString("hud.rating", comment: "")
-                    )
-                    Spacer(minLength: 0)
+                    if isWide {
+                        Divider().frame(height: 26)
+                        statistic(
+                            symbol: "star.fill",
+                            value: String(format: "%.1f", hud.reputationStars),
+                            label: NSLocalizedString("hud.rating", comment: "")
+                        )
+                    }
+                    Spacer(minLength: 4)
                     speedControls
                 }
                 .padding(.horizontal, 12)
@@ -70,14 +82,14 @@ struct HUDView: View {
     }
 
     private var speedControls: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: isWide ? 6 : 3) {
             ForEach(GameSpeed.allCases, id: \.self) { speed in
                 Button {
                     session.submit(.setSpeed(speed))
                 } label: {
                     Text(speed.displayLabel)
                         .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .frame(minWidth: 34, minHeight: 30)
+                        .frame(minWidth: isWide ? 34 : 28, minHeight: 30)
                 }
                 .buttonStyle(.bordered)
                 .tint(session.speed == speed ? .accentColor : .secondary)
@@ -88,7 +100,7 @@ struct HUDView: View {
                 showingDebugMenu = true
             } label: {
                 Image(systemName: "ladybug")
-                    .frame(minWidth: 34, minHeight: 30)
+                    .frame(minWidth: isWide ? 34 : 28, minHeight: 30)
             }
             .buttonStyle(.bordered)
             .accessibilityLabel(Text(NSLocalizedString("debug.title", comment: "")))
@@ -98,9 +110,14 @@ struct HUDView: View {
 
     /// One HUD figure and its caption.
     ///
-    /// `lineLimit(1)` plus `fixedSize` are load-bearing, not cosmetic: without them a long value
-    /// with no spaces in it — a seven-figure cash balance — is wrapped one character per line
-    /// when the bar runs short of width, and the whole HUD becomes unreadable.
+    /// `lineLimit(1)` is load-bearing, not cosmetic: without it a long value with no spaces in
+    /// it — a seven-figure cash balance — is wrapped one character per line when the bar runs
+    /// short of width, and the whole HUD becomes unreadable.
+    ///
+    /// It deliberately does *not* use `fixedSize(horizontal:)` to achieve that. Doing so pushes
+    /// an oversized ideal width up through the shared overlay stack, which on a phone shifted the
+    /// entire UI sideways and clipped the inspector and the navigation bar along with the HUD.
+    /// Shrinking the text is the correct escape valve; demanding more room than exists is not.
     private func statistic(symbol: String, value: String, label: String, tint: Color = .primary) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             Label(value, systemImage: symbol)
@@ -111,7 +128,7 @@ struct HUDView: View {
                 .foregroundStyle(.secondary)
         }
         .lineLimit(1)
-        .fixedSize(horizontal: true, vertical: false)
+        .minimumScaleFactor(0.75)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("\(label): \(value)"))
     }

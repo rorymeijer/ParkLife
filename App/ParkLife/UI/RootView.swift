@@ -49,6 +49,10 @@ struct RootView: View {
                     BuildBarView()
                     NavigationBarView(activePanel: $activePanel, isWide: isWide)
                 }
+                // Pinned to the available width so no single control can widen the whole overlay.
+                // When one did, the column was centred at its oversized width and the HUD, the
+                // inspector and the navigation bar were all clipped off both edges at once.
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 12)
                 .padding(.bottom, 8)
             }
