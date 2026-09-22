@@ -101,11 +101,19 @@ The container this repository was developed in has **no Swift toolchain** (swift
 the environment's network policy) and no macOS. So:
 
 * `swift build` and `swift test` **have not been run here**. The code is written to compile, and
-  `.github/workflows/ci.yml` runs the real build and the full test suite on macOS *and* Linux on
-  the first push. Treat CI, not this README, as the source of truth.
+  `.github/workflows/ci.yml` runs the real build and the full test suite on macOS *and* Linux.
+  Treat CI, not this README, as the source of truth — **once it runs**.
+* **GitHub Actions is not currently executing on this repository.** The first push created a run
+  whose four jobs all failed within eight seconds, with zero steps executed and no logs — the
+  signature of runners never being allocated, not of a build error. Subsequent pushes create no
+  run at all. Enable Actions for the repository (Settings → Actions → General) and check the
+  account's Actions billing/spending limit; the workflow itself parses fine, since GitHub created
+  its four jobs from it.
 * `Tools/check_sources.py` runs everywhere and does what can be done without a type checker:
-  brace/paren balance with a real lexer, duplicate top-level declarations, references to types
-  that are declared nowhere, and catalog JSON validity. It passes.
+  brace/paren balance with a real lexer, `#if`/`#endif` balance, non-exhaustive switches over the
+  project's own enums, duplicate top-level declarations, references to types that are declared
+  nowhere, and catalog JSON validity. It is itself verified against fixtures that fail on
+  purpose, and the project passes it clean.
 * The screenshots are mockups, clearly labelled as such.
 
 This is written down rather than glossed over because the alternative — claiming a green build

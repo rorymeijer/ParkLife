@@ -73,8 +73,13 @@ that nothing is silently dropped (Rule 12).
 ## Current
 
 - [~] **Verify the build.** The development container has no Swift toolchain and no Xcode, so
-      nothing here has been compiled. `Tools/check_sources.py` passes; CI runs the real thing on
-      the first push. **Next action: read the CI result and fix whatever it finds.**
+      nothing here has been compiled. `Tools/check_sources.py` passes, including switch
+      exhaustiveness over every enum in the project.
+      **Blocked on CI: GitHub Actions is not executing for this repository.** The first push
+      created a run whose four jobs all failed in under eight seconds with zero steps and no
+      logs — runners were never allocated. Later pushes create no run at all. **Next action:
+      enable Actions for the repository and check the account's Actions billing, then read the
+      result and fix whatever the compiler finds.**
 - [~] **App layer.** SwiftUI + SpriteKit is written — scene, node pools, camera, HUD, build bar,
       inspector and ten panels — but unverified for the same reason.
 - [~] **Screenshots.** `docs/screenshots/` holds design mockups generated from the real catalog and
@@ -117,7 +122,7 @@ quietly dropped.
 
 | Item | Brief | Why not yet | Where it lands |
 |---|---|---|---|
-| Compiled, verified build | Rule 7 | No Swift toolchain or Xcode in the development container; swift.org is blocked by network policy | First CI run |
+| Compiled, verified build | Rule 7 | No Swift toolchain or Xcode in the development container (swift.org is blocked by network policy), and GitHub Actions is not running for this repository | As soon as Actions is enabled, or on any Mac with Xcode 16 |
 | Congestion-aware routing | §10 | Flow fields are deliberately static so they rebuild identically after a load; making them crowd-aware needs periodic rebuilds and a different determinism story | Phase 4, with vehicles |
 | Terrain editing | §9 | The brief says not to build it before the core is stable | Phase 4 |
 | Utilities as a network (electricity, water, sewage) | §20 | Currently billed as aggregate daily consumption, which is the "meaningful decisions without micromanagement" half of the requirement | Phase 3/4 |
