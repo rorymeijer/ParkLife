@@ -197,7 +197,8 @@ public enum FacilitySystem: SimulationSystem {
         }
         world.buildings.modify(buildingID) { building in
             // Use wears a place down a little.
-            building.facility?.cleanliness = clamp01((building.facility?.cleanliness ?? 1.0) - 0.004)
+            let current = building.facility?.cleanliness ?? 1.0
+            building.facility?.cleanliness = clamp01(current - 0.004)
         }
 
         recordVisitSatisfaction(

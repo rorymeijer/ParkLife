@@ -301,6 +301,67 @@ def check_conditional_compilation(path, code):
     return []
 
 
+SELF_ASSIGN_RE = re.compile(
+    r"^\s*([A-Za-z_][\w]*(?:\.[\w]+)*)\?\.([\w]+)\s*(?:\+=|-=|\*=|/=|=)\s*(.+)$"
+)
+MODIFY_RE = re.compile(r"\b(\w+)\.(\w+)\.modify\(")
+# Computed properties on World: reading one accesses the *whole* struct.
+WORLD_COMPUTED = {
+    "tick", "date", "reception", "parkEntranceTiles", "netWorth", "totalUnitCapacity",
+    "totalUnits", "occupiedUnits", "occupancyRate", "averageGuestHappiness",
+}
+
+
+def check_exclusivity(path, code):
+    """
+    Two patterns Swift's exclusivity checker rejects, both found the hard way by CI:
+
+      a?.b = f(a?.b)              reads and writes one optional chain in a single expression
+      store.modify { … world.tick … }   reads a computed property on the struct whose part is
+                                        already exclusively accessed
+
+    Neither is visible to a brace check, and both are compile errors rather than warnings.
+    """
+    problems = []
+    lines = code.splitlines()
+
+    for number, line in enumerate(lines, 1):
+        match = SELF_ASSIGN_RE.match(line)
+        if match:
+            prefix, prop, rhs = match.groups()
+            if re.search(rf"{re.escape(prefix)}\?\.{re.escape(prop)}\b", rhs):
+                problems.append(
+                    f"{path}:{number}: '{prefix}?.{prop}' is read and written in one "
+                    f"expression; read it into a local first [exclusivity]"
+                )
+
+    depth = 0
+    opener = None
+    owner = None
+    for number, line in enumerate(lines, 1):
+        if depth == 0:
+            match = MODIFY_RE.search(line)
+            if match:
+                owner = match.group(1)
+                opener = number
+                depth = line.count("{") - line.count("}")
+                if depth < 0:
+                    depth = 0
+                continue
+        else:
+            for name in WORLD_COMPUTED:
+                if re.search(rf"\b{re.escape(owner)}\.{name}\b", line):
+                    problems.append(
+                        f"{path}:{opener}: closure reads '{owner}.{name}' (a computed property) "
+                        f"while '{owner}' is exclusively accessed; hoist it to a local "
+                        f"[exclusivity]"
+                    )
+            depth += line.count("{") - line.count("}")
+            if depth <= 0:
+                depth = 0
+    return problems
+
+
 def check_balance(path, code):
     problems = []
     pairs = {")": "(", "]": "[", "}": "{"}
@@ -353,6 +414,7 @@ def main():
         code = strip_code(text)
         problems.extend(check_balance(rel, code))
         problems.extend(check_conditional_compilation(rel, code))
+        problems.extend(check_exclusivity(rel, code))
         file_enums = collect_enum_cases(code)
         all_enum_cases.update(file_enums)
         pending_switches.append((rel, code))

@@ -71,7 +71,8 @@ public enum CheckoutService {
             building.accommodation?.state = .dirty
             building.accommodation?.currentReservationID = nil
             let loss = context.tuning.cleanlinessLossPerNight * Double(max(1, nights))
-            building.accommodation?.cleanliness = clamp01((building.accommodation?.cleanliness ?? 1.0) - loss)
+            let current = building.accommodation?.cleanliness ?? 1.0
+            building.accommodation?.cleanliness = clamp01(current - loss)
         }
         context.emit(.unitNeedsCleaning(unit))
         StaffSystem.createCleaningTask(for: unit, world: &world, context: &context)
