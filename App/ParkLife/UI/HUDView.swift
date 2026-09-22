@@ -5,37 +5,49 @@ import ParkLifeCore
 struct HUDView: View {
 
     @EnvironmentObject private var session: GameSession
-    @Environment(\.horizontalSizeClass) private var sizeClass
     @Binding var showingDebugMenu: Bool
-
-    /// iPad has room for the full set of figures on one line; a phone does not.
-    private var isWide: Bool { sizeClass == .regular }
 
     var body: some View {
         if let hud = session.snapshot?.hud {
             VStack(spacing: 6) {
-                // A VStack is as wide as its widest child, and this bar was it: with the figures
-                // and six speed buttons on one line it demanded roughly 470pt against a phone's
-                // ~378pt. The whole overlay column then took that width and was centred, clipping
-                // the inspector and the navigation bar off both edges along with the HUD. On a
-                // narrow screen the two halves get a line each instead.
-                Group {
-                    if isWide {
+                // Laid out by what actually fits, not by size class.
+                //
+                // Guessing from the size class was wrong in both directions: a phone could not
+                // fit the figures and six speed buttons on one line, and neither could an iPad
+                // once the 380pt side panel was open, leaving the park pane around 650pt. The
+                // first attempt overflowed and, because a VStack is as wide as its widest child,
+                // dragged the inspector and the navigation bar off both edges with it; the second
+                // squeezed the figures until only their captions were left. ViewThatFits picks
+                // the first of these that genuinely fits the width on offer.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 10) {
+                        statistics(hud, includingSecondary: true)
+                        Spacer(minLength: 8)
+                        speedControls
+                    }
+                    HStack(spacing: 10) {
+                        statistics(hud, includingSecondary: false)
+                        Spacer(minLength: 8)
+                        speedControls
+                    }
+                    VStack(spacing: 6) {
                         HStack(spacing: 10) {
-                            statistics(hud)
+                            statistics(hud, includingSecondary: true)
                             Spacer(minLength: 4)
+                        }
+                        HStack(spacing: 10) {
+                            Spacer(minLength: 0)
                             speedControls
                         }
-                    } else {
-                        VStack(spacing: 6) {
-                            HStack(spacing: 10) {
-                                statistics(hud)
-                                Spacer(minLength: 4)
-                            }
-                            HStack(spacing: 10) {
-                                Spacer(minLength: 0)
-                                speedControls
-                            }
+                    }
+                    VStack(spacing: 6) {
+                        HStack(spacing: 10) {
+                            statistics(hud, includingSecondary: false)
+                            Spacer(minLength: 4)
+                        }
+                        HStack(spacing: 10) {
+                            Spacer(minLength: 0)
+                            speedControls
                         }
                     }
                 }
@@ -74,17 +86,19 @@ struct HUDView: View {
         }
     }
 
-    /// The figures themselves. Guests and rating are dropped on a phone: a narrow bar needs
-    /// fewer figures, not smaller ones.
+    /// The figures themselves.
+    ///
+    /// Cash and occupancy are the two that always earn their place; guests and rating are the
+    /// first thing dropped when the bar is short of room.
     @ViewBuilder
-    private func statistics(_ hud: WorldSnapshot.HUD) -> some View {
+    private func statistics(_ hud: WorldSnapshot.HUD, includingSecondary: Bool) -> some View {
         statistic(
             symbol: "eurosign.circle.fill",
             value: hud.cash.compactDescription,
             label: NSLocalizedString("hud.cash", comment: ""),
             tint: hud.cash.isNegative ? .red : .primary
         )
-        if isWide {
+        if includingSecondary {
             Divider().frame(height: 26)
             statistic(
                 symbol: "person.3.fill",
@@ -98,7 +112,7 @@ struct HUDView: View {
             value: "\(hud.occupancyPercent)%",
             label: NSLocalizedString("hud.occupancy", comment: "")
         )
-        if isWide {
+        if includingSecondary {
             Divider().frame(height: 26)
             statistic(
                 symbol: "star.fill",
@@ -109,14 +123,14 @@ struct HUDView: View {
     }
 
     private var speedControls: some View {
-        HStack(spacing: isWide ? 6 : 4) {
+        HStack(spacing: 6) {
             ForEach(GameSpeed.allCases, id: \.self) { speed in
                 Button {
                     session.submit(.setSpeed(speed))
                 } label: {
                     Text(speed.displayLabel)
                         .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .frame(minWidth: isWide ? 34 : 28, minHeight: 30)
+                        .frame(minWidth: 32, minHeight: 30)
                 }
                 .buttonStyle(.bordered)
                 .tint(session.speed == speed ? .accentColor : .secondary)
@@ -127,7 +141,7 @@ struct HUDView: View {
                 showingDebugMenu = true
             } label: {
                 Image(systemName: "ladybug")
-                    .frame(minWidth: isWide ? 34 : 28, minHeight: 30)
+                    .frame(minWidth: 32, minHeight: 30)
             }
             .buttonStyle(.bordered)
             .accessibilityLabel(Text(NSLocalizedString("debug.title", comment: "")))

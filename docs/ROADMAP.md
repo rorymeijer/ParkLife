@@ -75,18 +75,15 @@ that nothing is silently dropped (Rule 12).
 
 ## Current
 
-- [~] **Verify the build.** The development container has no Swift toolchain and no Xcode, so
-      nothing here has been compiled. `./Tools/verify.sh --quick` passes, including switch
-      exhaustiveness over every enum in the project. **Next action: run `./Tools/verify.sh --app`
-      on a Mac with Xcode 16, or read the CI result, and fix whatever the compiler finds.**
-      Note: CI cannot run yet. Every job so far failed in seconds with zero steps, annotated by
-      GitHub as *"The job was not started because recent account payments have failed or your
-      spending limit needs to be increased."* That block is account-wide and is not lifted by the
-      repository being public. Nothing in the workflow file is implicated.
-- [~] **App layer.** SwiftUI + SpriteKit is written — scene, node pools, camera, HUD, build bar,
-      inspector and ten panels — but unverified for the same reason.
-- [~] **Screenshots.** `docs/screenshots/` holds design mockups generated from the real catalog and
-      the real map generator. Replace with simulator captures once the project builds on a Mac.
+- [x] **Verify the build.** CI compiles and tests everything: the core on Linux (225 tests,
+      `swift:6.3.3-noble`) and the app on macOS with Xcode. The development container still has no
+      Swift toolchain, so `./Tools/verify.sh --quick` remains the only local check — it reports
+      exactly what it skipped so a local pass never overstates itself.
+- [x] **App layer.** SwiftUI + SpriteKit — scene, node pools, camera, HUD, build bar, inspector
+      and ten panels. The macOS CI job builds it and the screenshot job runs it, so it is no
+      longer unverified.
+- [x] **Screenshots.** `docs/screenshots/` holds real simulator captures, taken by CI on every
+      push from a park simulated forward 25-40 days.
 
 ## Next
 

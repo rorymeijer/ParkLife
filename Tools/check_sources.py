@@ -39,6 +39,7 @@ KNOWN_EXTERNAL = {
     "Environment", "Published", "State", "Binding", "Color", "Image", "Text", "Button", "Toggle",
     "Slider", "Stepper", "List", "Section", "Form", "NavigationStack", "NavigationSplitView",
     "ScrollView", "LazyVStack", "LazyHStack", "LazyVGrid", "GridItem", "VStack", "HStack",
+    "ViewThatFits",
     "ZStack", "Spacer", "Divider", "Group", "ForEach", "Label", "Picker", "TabView", "Menu",
     "Alignment", "Font", "Angle", "Animation", "Transaction", "Gradient", "LinearGradient",
     "RoundedRectangle", "Circle", "Capsule", "Rectangle", "Path", "Canvas", "GeometryReader",
