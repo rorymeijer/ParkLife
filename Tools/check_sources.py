@@ -344,6 +344,17 @@ def check_exclusivity(path, code):
             if match:
                 owner = match.group(1)
                 opener = number
+                # A single-line closure — `store.modify(id) { $0.x = world.date }` — opens and
+                # closes on this line, so the line itself has to be inspected here or it is
+                # never inspected at all.
+                tail = line[match.end():]
+                for name in WORLD_COMPUTED:
+                    if re.search(rf"\b{re.escape(owner)}\.{name}\b", tail):
+                        problems.append(
+                            f"{path}:{number}: closure reads '{owner}.{name}' (a computed "
+                            f"property) while '{owner}' is exclusively accessed; hoist it to a "
+                            f"local [exclusivity]"
+                        )
                 depth = line.count("{") - line.count("}")
                 if depth < 0:
                     depth = 0

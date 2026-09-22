@@ -177,7 +177,8 @@ final class GuestDecisionTests: XCTestCase {
     func testDepartureDayOverridesEverythingElse() throws {
         var (world, guestID) = try parkWithAGuest()
         let guest = try XCTUnwrap(world.guests[guestID])
-        world.groups.modify(guest.groupID) { $0.departureDate = world.date.startOfDay }
+        let departureDay = world.date.startOfDay
+        world.groups.modify(guest.groupID) { $0.departureDate = departureDay }
         world.guests.modify(guestID) { guest in
             guest.needs = NeedState(hunger: 0.99, thirst: 0.99, tiredness: 0.99, boredom: 0.99, bladder: 0.99)
         }
