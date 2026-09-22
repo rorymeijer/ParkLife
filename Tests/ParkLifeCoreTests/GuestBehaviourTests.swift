@@ -396,14 +396,39 @@ final class NotificationTests: XCTestCase {
         XCTAssertEqual(centre.items.first?.occurrences, 21)
     }
 
-    func testCooldownExpires() {
+    /// Once the cooldown has expired the player is told again — but on the *same* row.
+    ///
+    /// A persistent condition is one situation, not one per reminder, so re-raising it marks the
+    /// existing row unread and bumps its count rather than adding a second row. `post` returning
+    /// true means "the player's attention was drawn", which is what callers actually care about.
+    func testCooldownExpiryReRaisesTheSameRowRatherThanAddingAnother() {
         var centre = NotificationCentre()
         var allocator = IDAllocator()
         centre.post(priority: .info, text: LocalizedText("x"), groupingKey: "k", tick: 0, cooldownMinutes: 60, allocator: &allocator)
+        centre.markAllRead()
+
         XCTAssertTrue(
-            centre.post(priority: .info, text: LocalizedText("x"), groupingKey: "k", tick: 61, cooldownMinutes: 60, allocator: &allocator)
+            centre.post(priority: .info, text: LocalizedText("x"), groupingKey: "k", tick: 61, cooldownMinutes: 60, allocator: &allocator),
+            "the cooldown has expired, so this must draw the player's attention again"
         )
-        XCTAssertEqual(centre.items.count, 2)
+        XCTAssertEqual(centre.items.count, 1, "one condition is one row")
+        XCTAssertEqual(centre.items.first?.occurrences, 2)
+        XCTAssertEqual(centre.items.first?.isRead, false, "re-raised, so unread again")
+    }
+
+    /// A repeat *inside* the cooldown is counted but stays quiet.
+    func testRepeatInsideTheCooldownDoesNotReRaise() {
+        var centre = NotificationCentre()
+        var allocator = IDAllocator()
+        centre.post(priority: .info, text: LocalizedText("x"), groupingKey: "k", tick: 0, cooldownMinutes: 60, allocator: &allocator)
+        centre.markAllRead()
+
+        XCTAssertFalse(
+            centre.post(priority: .info, text: LocalizedText("x"), groupingKey: "k", tick: 30, cooldownMinutes: 60, allocator: &allocator)
+        )
+        XCTAssertEqual(centre.items.count, 1)
+        XCTAssertEqual(centre.items.first?.occurrences, 2)
+        XCTAssertEqual(centre.items.first?.isRead, true, "still quiet inside the cooldown")
     }
 
     func testSortingPutsCriticalFirst() {

@@ -21,8 +21,12 @@ DERIVED="$(pwd)/.build/screenshots-dd"
 LOGS="$(pwd)/.build/screenshot-logs"
 # How long to wait for the app to finish its simulated warm-up and print its ready marker.
 READY_TIMEOUT="${PARKLIFE_READY_TIMEOUT:-240}"
-# Anything smaller than this is a blank or half-drawn screen, not a park.
-MIN_PNG_BYTES=20000
+# A rendered park compresses to roughly 0.18-0.39 bytes per pixel; the blank launch screen the
+# first working run captured came out at 0.022. Judging density rather than absolute size keeps
+# the check honest across devices and resolutions.
+MIN_BYTES_PER_PIXEL=0.05
+# How many times to re-capture when the frame still looks blank.
+CAPTURE_ATTEMPTS=4
 
 mkdir -p "$OUT" "$LOGS"
 
@@ -129,6 +133,27 @@ wait_for_ready() {
     return 1
 }
 
+# Succeeds when the PNG carries enough detail per pixel to be a real frame.
+frame_has_content() {
+    python3 -c '
+import struct, sys
+
+path, floor = sys.argv[1], float(sys.argv[2])
+with open(path, "rb") as handle:
+    data = handle.read()
+if len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n":
+    print("not a PNG")
+    raise SystemExit(1)
+width, height = struct.unpack(">II", data[16:24])
+if width == 0 or height == 0:
+    print("zero-sized image")
+    raise SystemExit(1)
+density = len(data) / (width * height)
+print("%dx%d, %.4f bytes/pixel" % (width, height, density))
+raise SystemExit(0 if density >= floor else 1)
+' "$1" "$MIN_BYTES_PER_PIXEL"
+}
+
 # shot <file> <device-prefix...> -- <launch args...>
 shot() {
     local file="$1"; shift
@@ -159,21 +184,28 @@ shot() {
     xcrun simctl launch --console-pty "$udid" "$BUNDLE_ID" "${args[@]}" >"$logfile" 2>&1 &
     local launch_pid=$!
 
-    local status=0
+    local status=1
     if ! wait_for_ready "$logfile"; then
         fail "$file: app never reported ready within ${READY_TIMEOUT}s"
-        status=1
-    elif ! xcrun simctl io "$udid" screenshot "$OUT/$file" >/dev/null 2>&1; then
-        fail "$file: simctl io screenshot failed"
-        status=1
     else
-        local bytes
-        bytes="$(wc -c <"$OUT/$file" | tr -d ' ')"
-        if [ "$bytes" -lt "$MIN_PNG_BYTES" ]; then
-            fail "$file: captured only ${bytes} bytes — that is not a rendered park"
-            status=1
-        else
-            echo "  captured $OUT/$file (${bytes} bytes)"
+        local attempt=1
+        while [ "$attempt" -le "$CAPTURE_ATTEMPTS" ]; do
+            if ! xcrun simctl io "$udid" screenshot "$OUT/$file" >/dev/null 2>&1; then
+                fail "$file: simctl io screenshot failed (attempt $attempt)"
+            else
+                local detail
+                if detail="$(frame_has_content "$OUT/$file")"; then
+                    echo "  captured $OUT/$file ($detail)"
+                    status=0
+                    break
+                fi
+                echo "  attempt $attempt looks blank ($detail), waiting for the frame" >&2
+            fi
+            attempt=$((attempt + 1))
+            sleep 5
+        done
+        if [ "$status" -ne 0 ]; then
+            fail "$file: still blank after ${CAPTURE_ATTEMPTS} attempts — the app never drew"
         fi
     fi
 

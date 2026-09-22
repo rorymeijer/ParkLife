@@ -13,7 +13,7 @@ struct HUDView: View {
                 HStack(spacing: 10) {
                     statistic(
                         symbol: "eurosign.circle.fill",
-                        value: hud.cash.description,
+                        value: hud.cash.compactDescription,
                         label: NSLocalizedString("hud.cash", comment: ""),
                         tint: hud.cash.isNegative ? .red : .primary
                     )
@@ -96,6 +96,11 @@ struct HUDView: View {
         }
     }
 
+    /// One HUD figure and its caption.
+    ///
+    /// `lineLimit(1)` plus `fixedSize` are load-bearing, not cosmetic: without them a long value
+    /// with no spaces in it — a seven-figure cash balance — is wrapped one character per line
+    /// when the bar runs short of width, and the whole HUD becomes unreadable.
     private func statistic(symbol: String, value: String, label: String, tint: Color = .primary) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             Label(value, systemImage: symbol)
@@ -105,6 +110,8 @@ struct HUDView: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
+        .lineLimit(1)
+        .fixedSize(horizontal: true, vertical: false)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("\(label): \(value)"))
     }

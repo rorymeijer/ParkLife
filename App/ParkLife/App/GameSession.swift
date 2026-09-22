@@ -85,9 +85,10 @@ final class GameSession: ObservableObject {
 
             #if DEBUG
             if ScreenshotOptions.isActive {
-                // The capture script waits for this line rather than guessing how long the
-                // warm-up takes. Without it a slow simulator gets photographed mid-load.
-                print("PARKLIFE_SCREENSHOT_READY")
+                // Diagnostics only. This says the *state* is ready, which happens well before
+                // SwiftUI and SpriteKit have drawn anything — the capture script waits for
+                // RootView instead, because a screenshot needs the frame, not the state.
+                print("PARKLIFE_WARMUP_COMPLETE")
                 fflush(stdout)
             }
             #endif

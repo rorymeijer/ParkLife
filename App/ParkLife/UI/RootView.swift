@@ -80,6 +80,18 @@ struct RootView: View {
             if let raw = ScreenshotOptions.panel, let panel = ManagementPanel(rawValue: raw) {
                 activePanel = panel
             }
+            if ScreenshotOptions.isActive {
+                // Emitted from the view, not the session. The session is ready as soon as the
+                // warm-up finishes, but the window is still showing the launch screen at that
+                // point — which is exactly the blank white image the first capture run produced.
+                // Two runloop hops put this after the park and any presented panel have drawn.
+                DispatchQueue.main.async {
+                    DispatchQueue.main.async {
+                        print("PARKLIFE_SCREENSHOT_READY")
+                        fflush(stdout)
+                    }
+                }
+            }
             #endif
         }
         .sheet(isPresented: $showingDebugMenu) {
