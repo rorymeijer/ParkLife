@@ -75,6 +75,13 @@ struct RootView: View {
             }
             .presentationDetents([.medium, .large])
         }
+        .onAppear {
+            #if DEBUG
+            if let raw = ScreenshotOptions.panel, let panel = ManagementPanel(rawValue: raw) {
+                activePanel = panel
+            }
+            #endif
+        }
         .sheet(isPresented: $showingDebugMenu) {
             NavigationStack {
                 DebugMenuView()

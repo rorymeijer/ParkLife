@@ -89,6 +89,9 @@ final class ParkScene: SKScene {
         if let world = session?.world {
             mapSize = world.tiles.size
             centre(on: world.entranceTile)
+            #if DEBUG
+            applyScreenshotFraming(world: world)
+            #endif
         }
 
         installGestures(on: view)
@@ -246,6 +249,23 @@ final class ParkScene: SKScene {
     }
 
     // MARK: - Camera
+
+    #if DEBUG
+    /// Frames the built part of the park rather than the gate, so an automated shot shows the
+    /// park someone actually built.
+    private func applyScreenshotFraming(world: World) {
+        guard ScreenshotOptions.isActive else { return }
+        if let requested = ScreenshotOptions.zoom {
+            zoom = CGFloat(Swift.min(Swift.max(requested, Double(minimumZoom)), Double(maximumZoom)))
+            cameraNode.setScale(zoom)
+        }
+        let origins = world.buildings.items.map(\.origin)
+        guard !origins.isEmpty else { return }
+        let meanX = origins.reduce(0) { $0 + $1.x } / origins.count
+        let meanY = origins.reduce(0) { $0 + $1.y } / origins.count
+        centre(on: GridPoint(x: meanX, y: meanY))
+    }
+    #endif
 
     private func centre(on tile: GridPoint) {
         let screen = projection.project(WorldPoint(tile))

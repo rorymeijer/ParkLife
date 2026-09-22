@@ -75,6 +75,11 @@ final class GameSession: ObservableObject {
             let world = try GameSetup.makeDemoPark(catalog: catalog)
             let engine = SimulationEngine(world: world)
             self.engine = engine
+
+            #if DEBUG
+            applyScreenshotOptions(to: engine)
+            #endif
+
             refreshSnapshot()
             isReady = true
         } catch {
@@ -82,6 +87,51 @@ final class GameSession: ObservableObject {
             logger.error("Could not start a game: \(String(describing: error))")
         }
     }
+
+    #if DEBUG
+    /// Puts the session into the state an automated screenshot run asked for.
+    private func applyScreenshotOptions(to engine: SimulationEngine) {
+        guard ScreenshotOptions.isActive else { return }
+
+        // Run the simulation forward so the park is populated — an empty park makes a poor
+        // screenshot and, more to the point, would not show that any of this works.
+        let days = ScreenshotOptions.warmupDays
+        if days > 0 {
+            engine.run(ticks: days * GameDate.minutesPerDay)
+            ParkLog.shared.info(.sim, "Screenshot warm-up: \(days) simulated days")
+        }
+        engine.submit(.setSpeed(.paused))
+
+        if let overlay = ScreenshotOptions.overlay {
+            activeOverlay = overlay
+        }
+
+        switch ScreenshotOptions.selection {
+        case "cottage":
+            // Prefer an occupied cottage: it has the most to show.
+            let occupied = engine.world.index.accommodationIDs.first {
+                engine.world.buildings[$0]?.accommodation?.state == .occupied
+            }
+            if let id = occupied ?? engine.world.index.accommodationIDs.first {
+                selection = .building(id)
+            }
+        case "pool":
+            if let id = engine.world.index.facilities(ofKind: .pool).first {
+                selection = .building(id)
+            }
+        case "guest":
+            if let guest = engine.world.guests.items.first(where: { $0.activity != .departed }) {
+                selection = .guest(guest.id)
+            }
+        default:
+            break
+        }
+
+        if let definitionID = ScreenshotOptions.buildDefinition {
+            buildMode = .building(definitionID, .none)
+        }
+    }
+    #endif
 
     func newGame(scenarioID: String) {
         guard let catalog else { return }
