@@ -70,8 +70,11 @@ public struct NotificationCentre: Codable {
         self.lastPostedTick = [:]
     }
 
-    /// Posts an alert unless an identical one is still in cooldown; in that case the existing
-    /// entry's occurrence count is bumped instead of adding a new row.
+    /// Posts an alert, folding repeats of the same grouping key onto a single row.
+    ///
+    /// One condition is one row, however long it lasts: repeats bump the occurrence count rather
+    /// than stacking up. Returns whether this post drew the player's attention — a new row, or an
+    /// existing one re-raised as unread because the cooldown had expired.
     @discardableResult
     public mutating func post(
         priority: NotificationPriority,
@@ -82,12 +85,26 @@ public struct NotificationCentre: Codable {
         cooldownMinutes: Int = NotificationCentre.defaultCooldownMinutes,
         allocator: inout IDAllocator
     ) -> Bool {
-        if let last = lastPostedTick[groupingKey], tick - last < cooldownMinutes {
-            if let index = items.lastIndex(where: { $0.groupingKey == groupingKey }) {
-                items[index].occurrences += 1
-                items[index].tick = tick
+        // Aggregate onto the existing row for this key whenever one is still in the tray, whatever
+        // the cooldown says. A condition that persists for six weeks — "you are short of staff" —
+        // is one situation the player should see once with a count, not forty-five separate rows.
+        // The cooldown governs only whether it is raised as *unread* again.
+        //
+        // The return value says whether this post drew the player's attention: a new row, or an
+        // existing row re-raised as unread once the cooldown expired. Silent aggregation inside
+        // the cooldown returns false.
+        if let index = items.lastIndex(where: { $0.groupingKey == groupingKey }) {
+            items[index].occurrences += 1
+            items[index].tick = tick
+            let last = lastPostedTick[groupingKey] ?? tick
+            if tick - last >= cooldownMinutes {
                 items[index].isRead = false
+                lastPostedTick[groupingKey] = tick
+                return true
             }
+            return false
+        }
+        if let last = lastPostedTick[groupingKey], tick - last < cooldownMinutes {
             return false
         }
         lastPostedTick[groupingKey] = tick

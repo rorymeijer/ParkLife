@@ -55,10 +55,13 @@ public enum ArrivalSystem: SimulationSystem {
                 tick: world.tick,
                 allocator: &world.ids
             )
+            // Read the tick before taking exclusive access to the guest store: `world.tick` is
+            // computed, so reading it touches the whole of `world`.
+            let now = world.tick
             for guestID in group.memberIDs {
                 world.guests.modify(guestID) { guest in
                     guest.activity = .idle
-                    guest.remember(GuestThought(kind: .cantReachDestination, magnitude: 0.9, tick: world.tick))
+                    guest.remember(GuestThought(kind: .cantReachDestination, magnitude: 0.9, tick: now))
                 }
                 context.emit(.guestThought(guestID, .cantReachDestination))
             }
@@ -69,6 +72,7 @@ public enum ArrivalSystem: SimulationSystem {
         if world.navigation.field(for: receptionID) == nil {
             world.registerSharedDestinations()
         }
+        let now = world.tick
         for guestID in group.memberIDs {
             guard let guest = world.guests[guestID] else { continue }
             if let tiles = world.navigation.field(for: receptionID)?.path(from: guest.tile) {
@@ -76,7 +80,7 @@ public enum ArrivalSystem: SimulationSystem {
             } else {
                 world.guests.modify(guestID) { guest in
                     guest.activity = .idle
-                    guest.remember(GuestThought(kind: .cantReachDestination, magnitude: 0.8, tick: world.tick))
+                    guest.remember(GuestThought(kind: .cantReachDestination, magnitude: 0.8, tick: now))
                 }
                 world.notifications.post(
                     priority: .warning,

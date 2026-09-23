@@ -211,10 +211,11 @@ public enum CheckInService {
                 stored.path = MovementPath(tiles: tiles)
             }
         } else {
+            let now = world.tick
             world.guests.modify(guestID) { stored in
                 stored.activity = .idle
                 stored.detail = .reduced
-                stored.remember(GuestThought(kind: .cantReachDestination, magnitude: 0.9, tick: world.tick))
+                stored.remember(GuestThought(kind: .cantReachDestination, magnitude: 0.9, tick: now))
             }
         }
     }

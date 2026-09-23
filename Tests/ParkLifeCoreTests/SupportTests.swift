@@ -3,6 +3,18 @@ import XCTest
 
 final class MoneyTests: XCTestCase {
 
+    /// The HUD's cash slot is narrow and its value has no spaces to break on, so a seven-figure
+    /// balance printed in full wrapped one character per line across the whole status bar.
+    func testCompactDescriptionAbbreviatesLargeAmountsButNotSmallOnes() {
+        XCTAssertEqual(Money(cents: 2_000_000_000).compactDescription, "€20.0M")
+        XCTAssertEqual(Money(cents: 298_408_418).compactDescription, "€3.0M")
+        XCTAssertEqual(Money(cents: 1_234_567).compactDescription, "€12.3k")
+        XCTAssertEqual(Money(cents: -450_000_000).compactDescription, "-€4.5M")
+        // Below ten thousand euros the exact figure still matters.
+        XCTAssertEqual(Money(cents: 8_050).compactDescription, "€80.50")
+        XCTAssertEqual(Money(cents: 0).compactDescription, "€0.00")
+    }
+
     func testEuroConstruction() {
         XCTAssertEqual(Money(euros: 12).cents, 1_200)
         XCTAssertEqual(Money.euros(4.55).cents, 455)
@@ -164,11 +176,25 @@ final class MinHeapTests: XCTestCase {
 
 final class FNV1aTests: XCTestCase {
 
-    func testKnownVector() {
-        var hasher = FNV1a()
-        hasher.combine("hello")
-        // FNV-1a 64 of "hello".
-        XCTAssertEqual(hasher.hexDigest, "a430d84680aabd0b")
+    /// Reference vectors for FNV-1a 64.
+    ///
+    /// These are not decoration. The prime was once written `0x1000_0000_01b3` — one hex digit
+    /// too many, invisible behind the underscore grouping — which made every checksum and every
+    /// determinism hash in the project wrong while still looking entirely plausible. Several
+    /// vectors, including the empty string (which must be exactly the offset basis), pin both
+    /// constants by behaviour.
+    func testKnownVectors() {
+        let vectors: [(String, String)] = [
+            ("", "cbf29ce484222325"),
+            ("a", "af63dc4c8601ec8c"),
+            ("hello", "a430d84680aabd0b"),
+            ("ParkLife", "299e0765bfcba19b"),
+        ]
+        for (input, expected) in vectors {
+            var hasher = FNV1a()
+            hasher.combine(input)
+            XCTAssertEqual(hasher.hexDigest, expected, "FNV-1a 64 of \"\(input)\"")
+        }
     }
 
     func testStabilityAcrossRuns() {

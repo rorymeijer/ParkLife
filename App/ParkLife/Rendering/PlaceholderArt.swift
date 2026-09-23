@@ -66,11 +66,345 @@ enum PlaceholderArt {
 
     // MARK: - Buildings
 
-    /// A simple extruded block sized to the footprint, tinted by category.
+    /// Artwork for one building, chosen by category.
+    ///
+    /// Cottages and the pool are drawn as actual buildings — a pitched roof, walls with windows,
+    /// a glazed hall with water inside — because they are what the player looks at most. Every
+    /// shape here is generated in code and original to this project (ASSET POLICY §54).
     static func buildingTexture(art: String, category: BuildingCategory, footprint: GridSize) -> SKTexture {
         let key = "building-\(art)-\(footprint.width)x\(footprint.height)"
         if let cached = cache[key] { return cached }
 
+        let image: UIImage
+        switch category {
+        case .accommodation:
+            image = cottageImage(art: art, footprint: footprint)
+        case .pool:
+            image = poolHallImage(footprint: footprint)
+        case .food, .retail, .activity, .service, .staff, .decoration, .infrastructure, .path:
+            image = blockImage(art: art, category: category, footprint: footprint)
+        }
+
+        let texture = SKTexture(image: image)
+        // Linear, not nearest: these are drawn at device scale and the park is usually viewed
+        // zoomed out, where nearest-neighbour turns every roof edge into a staircase.
+        texture.filteringMode = .linear
+        cache[key] = texture
+        return texture
+    }
+
+    // MARK: Isometric helpers
+
+    /// The four corners of a footprint's top face, and the drop to the foot of its walls.
+    ///
+    /// `roofRise` leaves headroom at the top of the image for a ridge. The sprite is anchored at
+    /// the bottom of the texture, so growing upwards costs nothing in alignment.
+    private struct Massing {
+        let size: CGSize
+        let north: CGPoint
+        let east: CGPoint
+        let south: CGPoint
+        let west: CGPoint
+        let wallHeight: CGFloat
+        let roofRise: CGFloat
+
+        init(footprint: GridSize, wallHeight: CGFloat, roofRise: CGFloat) {
+            // Qualified: a nested type does not see the enclosing type's statics unqualified.
+            let baseWidth = PlaceholderArt.tileWidth * CGFloat(footprint.width + footprint.height) / 2
+            let baseHeight = PlaceholderArt.tileHeight * CGFloat(footprint.width + footprint.height) / 2
+            let halfW = baseWidth / 2
+            let halfH = baseHeight / 2
+            self.size = CGSize(width: baseWidth, height: roofRise + baseHeight + wallHeight)
+            self.north = CGPoint(x: halfW, y: roofRise)
+            self.east = CGPoint(x: baseWidth, y: roofRise + halfH)
+            self.south = CGPoint(x: halfW, y: roofRise + baseHeight)
+            self.west = CGPoint(x: 0, y: roofRise + halfH)
+            self.wallHeight = wallHeight
+            self.roofRise = roofRise
+        }
+
+        var centre: CGPoint { CGPoint(x: (west.x + east.x) / 2, y: (north.y + south.y) / 2) }
+
+        func dropped(_ point: CGPoint) -> CGPoint {
+            CGPoint(x: point.x, y: point.y + wallHeight)
+        }
+
+        /// Pulls a corner of the top face towards the centre, for an inset deck or basin.
+        func inset(_ point: CGPoint, by factor: CGFloat) -> CGPoint {
+            let middle = centre
+            return CGPoint(
+                x: middle.x + (point.x - middle.x) * factor,
+                y: middle.y + (point.y - middle.y) * factor
+            )
+        }
+    }
+
+    private static func polygon(_ points: [CGPoint]) -> UIBezierPath {
+        let path = UIBezierPath()
+        guard let first = points.first else { return path }
+        path.move(to: first)
+        for point in points.dropFirst() {
+            path.addLine(to: point)
+        }
+        path.close()
+        return path
+    }
+
+    private static func lerp(_ a: CGPoint, _ b: CGPoint, _ t: CGFloat) -> CGPoint {
+        CGPoint(x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t)
+    }
+
+    /// A point on a wall face. `u` runs along the top edge from `a` to `b`, `v` down the wall.
+    private static func wallPoint(
+        _ a: CGPoint, _ b: CGPoint, u: CGFloat, v: CGFloat, drop: CGFloat
+    ) -> CGPoint {
+        CGPoint(x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u + drop * v)
+    }
+
+    /// A rectangle in a wall's own plane — a window or a door, skewed to sit flat on the wall.
+    private static func wallPanel(
+        _ a: CGPoint, _ b: CGPoint, drop: CGFloat,
+        u0: CGFloat, u1: CGFloat, v0: CGFloat, v1: CGFloat
+    ) -> UIBezierPath {
+        polygon([
+            wallPoint(a, b, u: u0, v: v0, drop: drop),
+            wallPoint(a, b, u: u1, v: v0, drop: drop),
+            wallPoint(a, b, u: u1, v: v1, drop: drop),
+            wallPoint(a, b, u: u0, v: v1, drop: drop)
+        ])
+    }
+
+    // MARK: Cottages
+
+    private struct CottagePalette {
+        let wall: UIColor
+        let wallShade: UIColor
+        let roof: UIColor
+        let roofShade: UIColor
+        let trim: UIColor
+        let glass: UIColor
+        let door: UIColor
+    }
+
+    /// Stable per-type colours, so a basic cottage and a premium lodge are visibly different
+    /// buildings rather than the same box in two shades.
+    private static func cottagePalette(seed: String) -> CottagePalette {
+        var hasher = FNV1a()
+        hasher.combine(seed)
+        let digest = hasher.digest
+
+        let wallHue = 0.06 + CGFloat(digest % 50) / 1000.0
+        let wallSaturation = 0.14 + CGFloat((digest / 50) % 16) / 100.0
+        let roofHue = 0.015 + CGFloat((digest / 800) % 70) / 1000.0
+        let litWindows = (digest / 64) % 3 != 0
+
+        let wall = UIColor(hue: wallHue, saturation: wallSaturation, brightness: 0.92, alpha: 1)
+        let roof = UIColor(hue: roofHue, saturation: 0.50, brightness: 0.60, alpha: 1)
+        return CottagePalette(
+            wall: wall,
+            wallShade: wall.darkened(by: 0.17),
+            roof: roof,
+            roofShade: roof.darkened(by: 0.15),
+            trim: UIColor(white: 0.97, alpha: 1),
+            glass: litWindows
+                ? UIColor(red: 1.0, green: 0.86, blue: 0.55, alpha: 1)
+                : UIColor(red: 0.36, green: 0.46, blue: 0.54, alpha: 1),
+            door: UIColor(hue: roofHue, saturation: 0.55, brightness: 0.45, alpha: 1)
+        )
+    }
+
+    /// A gabled holiday cottage.
+    ///
+    /// The ridge runs back-left to front-right so the gable end faces the camera, which is where
+    /// the door goes; the long wall on the left carries the windows.
+    private static func cottageImage(art: String, footprint: GridSize) -> UIImage {
+        let wallHeight = height(for: .accommodation)
+        let massing = Massing(footprint: footprint, wallHeight: wallHeight, roofRise: wallHeight * 0.62)
+        let palette = cottagePalette(seed: art)
+
+        let north = massing.north
+        let east = massing.east
+        let south = massing.south
+        let west = massing.west
+        // Ridge ends sit directly above the midpoints of the two gable edges.
+        let ridgeBack = CGPoint(
+            x: (west.x + north.x) / 2,
+            y: (west.y + north.y) / 2 - massing.roofRise
+        )
+        let ridgeFront = CGPoint(
+            x: (south.x + east.x) / 2,
+            y: (south.y + east.y) / 2 - massing.roofRise
+        )
+
+        let renderer = UIGraphicsImageRenderer(size: massing.size)
+        return renderer.image { _ in
+            // Long wall, facing front-left.
+            palette.wallShade.setFill()
+            polygon([west, south, massing.dropped(south), massing.dropped(west)]).fill()
+            // Gable wall, facing front-right, plus its triangle up to the ridge.
+            palette.wall.setFill()
+            polygon([south, east, massing.dropped(east), massing.dropped(south)]).fill()
+            polygon([south, east, ridgeFront]).fill()
+            // The far gable, mostly hidden behind the roof but visible at the very top.
+            palette.wallShade.setFill()
+            polygon([west, north, ridgeBack]).fill()
+
+            drawCottageOpenings(massing: massing, palette: palette)
+
+            // Roof last: its eaves land exactly on the wall tops, so nothing is overdrawn.
+            palette.roofShade.setFill()
+            polygon([ridgeBack, west, south, ridgeFront]).fill()
+            palette.roof.setFill()
+            polygon([ridgeBack, north, east, ridgeFront]).fill()
+
+            // Ridge line and a chimney near the front gable.
+            palette.roofShade.darkened(by: 0.10).setStroke()
+            let ridge = UIBezierPath()
+            ridge.move(to: ridgeBack)
+            ridge.addLine(to: ridgeFront)
+            ridge.lineWidth = 1.5
+            ridge.stroke()
+
+            drawChimney(at: lerp(ridgeBack, ridgeFront, 0.30), palette: palette, scale: wallHeight)
+        }
+    }
+
+    private static func drawCottageOpenings(massing: Massing, palette: CottagePalette) {
+        let drop = massing.wallHeight
+
+        // Two windows along the long wall.
+        for u in [CGFloat(0.22), CGFloat(0.60)] {
+            palette.trim.setFill()
+            wallPanel(massing.west, massing.south, drop: drop,
+                      u0: u, u1: u + 0.20, v0: 0.22, v1: 0.66).fill()
+            palette.glass.setFill()
+            wallPanel(massing.west, massing.south, drop: drop,
+                      u0: u + 0.03, u1: u + 0.17, v0: 0.28, v1: 0.60).fill()
+        }
+
+        // Door on the gable end, reaching the ground, with a window beside it.
+        palette.door.setFill()
+        wallPanel(massing.south, massing.east, drop: drop,
+                  u0: 0.30, u1: 0.48, v0: 0.30, v1: 1.0).fill()
+        palette.trim.setFill()
+        wallPanel(massing.south, massing.east, drop: drop,
+                  u0: 0.60, u1: 0.82, v0: 0.24, v1: 0.64).fill()
+        palette.glass.setFill()
+        wallPanel(massing.south, massing.east, drop: drop,
+                  u0: 0.63, u1: 0.79, v0: 0.30, v1: 0.58).fill()
+    }
+
+    private static func drawChimney(at point: CGPoint, palette: CottagePalette, scale: CGFloat) {
+        let width = max(5, scale * 0.20)
+        let stackHeight = max(10, scale * 0.46)
+        palette.roofShade.setFill()
+        UIBezierPath(rect: CGRect(
+            x: point.x - width / 2, y: point.y - stackHeight, width: width, height: stackHeight
+        )).fill()
+        palette.wall.darkened(by: 0.08).setFill()
+        UIBezierPath(rect: CGRect(
+            x: point.x - width / 2 - 1, y: point.y - stackHeight - 2, width: width + 2, height: 3
+        )).fill()
+    }
+
+    // MARK: The pool
+
+    /// A swimming pool: a glazed enclosure around a sunken, coped basin.
+    ///
+    /// Nested inset rings do the work — coping, then the basin wall in deeper water, then the
+    /// surface — which reads as depth from this angle without needing real geometry for the hole.
+    /// An earlier version roofed the whole thing in glass; the water disappeared under it, which
+    /// defeated the point of drawing a pool at all.
+    private static func poolHallImage(footprint: GridSize) -> UIImage {
+        let wallHeight = height(for: .pool)
+        let massing = Massing(footprint: footprint, wallHeight: wallHeight, roofRise: 0)
+
+        let deck = UIColor(red: 0.89, green: 0.89, blue: 0.86, alpha: 1)
+        let coping = UIColor(red: 0.97, green: 0.97, blue: 0.95, alpha: 1)
+        let waterDeep = UIColor(red: 0.10, green: 0.42, blue: 0.62, alpha: 1)
+        let water = UIColor(red: 0.18, green: 0.62, blue: 0.82, alpha: 1)
+        let waterLight = UIColor(red: 0.55, green: 0.85, blue: 0.94, alpha: 1)
+        let plinth = UIColor(red: 0.74, green: 0.76, blue: 0.78, alpha: 1)
+        let glazing = UIColor(red: 0.72, green: 0.90, blue: 0.95, alpha: 1)
+        let mullion = UIColor(red: 0.62, green: 0.68, blue: 0.72, alpha: 1)
+
+        let north = massing.north
+        let east = massing.east
+        let south = massing.south
+        let west = massing.west
+
+        let renderer = UIGraphicsImageRenderer(size: massing.size)
+        return renderer.image { _ in
+            // Enclosure walls: a plinth with a band of glazing above it.
+            plinth.setFill()
+            polygon([west, south, massing.dropped(south), massing.dropped(west)]).fill()
+            polygon([south, east, massing.dropped(east), massing.dropped(south)]).fill()
+            glazing.darkened(by: 0.06).setFill()
+            wallPanel(west, south, drop: massing.wallHeight, u0: 0.04, u1: 0.96, v0: 0.10, v1: 0.62).fill()
+            glazing.setFill()
+            wallPanel(south, east, drop: massing.wallHeight, u0: 0.04, u1: 0.96, v0: 0.10, v1: 0.62).fill()
+            mullion.setStroke()
+            for u in [CGFloat(0.25), CGFloat(0.5), CGFloat(0.75)] {
+                for wall in [(west, south), (south, east)] {
+                    let bar = UIBezierPath()
+                    bar.move(to: wallPoint(wall.0, wall.1, u: u, v: 0.10, drop: massing.wallHeight))
+                    bar.addLine(to: wallPoint(wall.0, wall.1, u: u, v: 0.62, drop: massing.wallHeight))
+                    bar.lineWidth = 1
+                    bar.stroke()
+                }
+            }
+
+            // Poolside deck.
+            deck.setFill()
+            polygon([north, east, south, west]).fill()
+
+            let corners = [north, east, south, west]
+            let ring: (CGFloat) -> [CGPoint] = { factor in
+                corners.map { massing.inset($0, by: factor) }
+            }
+            // Coping, basin wall, then the water surface itself.
+            coping.setFill()
+            polygon(ring(0.86)).fill()
+            waterDeep.setFill()
+            polygon(ring(0.80)).fill()
+            let surface = ring(0.72)
+            water.setFill()
+            polygon(surface).fill()
+
+            // Lane lines run the length of the basin.
+            waterLight.withAlphaComponent(0.85).setStroke()
+            for t in [CGFloat(0.25), CGFloat(0.5), CGFloat(0.75)] {
+                let lane = UIBezierPath()
+                lane.move(to: lerp(surface[3], surface[2], t))
+                lane.addLine(to: lerp(surface[0], surface[1], t))
+                lane.lineWidth = 1.2
+                lane.stroke()
+            }
+            // A ladder on the near edge. The lane lines already give the water its texture;
+            // freehand "ripples" at this size just read as scratches across them.
+            coping.setStroke()
+            let ladderFoot = lerp(surface[2], surface[1], 0.35)
+            for offset in [CGFloat(-3), CGFloat(3)] {
+                let rail = UIBezierPath()
+                rail.move(to: CGPoint(x: ladderFoot.x + offset, y: ladderFoot.y + 2))
+                rail.addLine(to: CGPoint(x: ladderFoot.x + offset, y: ladderFoot.y - 8))
+                rail.lineWidth = 1.5
+                rail.stroke()
+            }
+            for step in [CGFloat(0), CGFloat(4)] {
+                let rung = UIBezierPath()
+                rung.move(to: CGPoint(x: ladderFoot.x - 3, y: ladderFoot.y - 4 - step))
+                rung.addLine(to: CGPoint(x: ladderFoot.x + 3, y: ladderFoot.y - 4 - step))
+                rung.lineWidth = 1.2
+                rung.stroke()
+            }
+        }
+    }
+
+    // MARK: Everything else
+
+    /// A simple extruded block sized to the footprint, tinted by category.
+    private static func blockImage(art: String, category: BuildingCategory, footprint: GridSize) -> UIImage {
         let baseWidth = tileWidth * CGFloat(footprint.width + footprint.height) / 2
         let baseHeight = tileHeight * CGFloat(footprint.width + footprint.height) / 2
         let bodyHeight = height(for: category)
@@ -78,45 +412,34 @@ enum PlaceholderArt {
 
         let tint = colour(for: category, seed: art)
         let renderer = UIGraphicsImageRenderer(size: size)
-        let image = renderer.image { _ in
+        return renderer.image { _ in
             let halfW = baseWidth / 2
             let halfH = baseHeight / 2
 
-            // Roof: the isometric diamond of the footprint.
-            let roof = UIBezierPath()
-            roof.move(to: CGPoint(x: halfW, y: 0))
-            roof.addLine(to: CGPoint(x: baseWidth, y: halfH))
-            roof.addLine(to: CGPoint(x: halfW, y: baseHeight))
-            roof.addLine(to: CGPoint(x: 0, y: halfH))
-            roof.close()
             tint.lightened().setFill()
-            roof.fill()
+            polygon([
+                CGPoint(x: halfW, y: 0),
+                CGPoint(x: baseWidth, y: halfH),
+                CGPoint(x: halfW, y: baseHeight),
+                CGPoint(x: 0, y: halfH)
+            ]).fill()
 
-            // Left wall.
-            let left = UIBezierPath()
-            left.move(to: CGPoint(x: 0, y: halfH))
-            left.addLine(to: CGPoint(x: halfW, y: baseHeight))
-            left.addLine(to: CGPoint(x: halfW, y: baseHeight + bodyHeight))
-            left.addLine(to: CGPoint(x: 0, y: halfH + bodyHeight))
-            left.close()
             tint.darkened().setFill()
-            left.fill()
+            polygon([
+                CGPoint(x: 0, y: halfH),
+                CGPoint(x: halfW, y: baseHeight),
+                CGPoint(x: halfW, y: baseHeight + bodyHeight),
+                CGPoint(x: 0, y: halfH + bodyHeight)
+            ]).fill()
 
-            // Right wall.
-            let right = UIBezierPath()
-            right.move(to: CGPoint(x: baseWidth, y: halfH))
-            right.addLine(to: CGPoint(x: halfW, y: baseHeight))
-            right.addLine(to: CGPoint(x: halfW, y: baseHeight + bodyHeight))
-            right.addLine(to: CGPoint(x: baseWidth, y: halfH + bodyHeight))
-            right.close()
             tint.setFill()
-            right.fill()
+            polygon([
+                CGPoint(x: baseWidth, y: halfH),
+                CGPoint(x: halfW, y: baseHeight),
+                CGPoint(x: halfW, y: baseHeight + bodyHeight),
+                CGPoint(x: baseWidth, y: halfH + bodyHeight)
+            ]).fill()
         }
-
-        let texture = SKTexture(image: image)
-        texture.filteringMode = .nearest
-        cache[key] = texture
-        return texture
     }
 
     private static func height(for category: BuildingCategory) -> CGFloat {
@@ -133,7 +456,7 @@ enum PlaceholderArt {
     }
 
     private static func colour(for category: BuildingCategory, seed: String) -> UIColor {
-        // A stable per-art hue jitter so neighbouring cottages are not identical.
+        // A stable per-art hue jitter so neighbouring buildings are not identical.
         var hasher = FNV1a()
         hasher.combine(seed)
         let jitter = CGFloat(hasher.digest % 1_000) / 1_000.0 * 0.05 - 0.025

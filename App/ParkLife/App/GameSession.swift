@@ -75,13 +75,84 @@ final class GameSession: ObservableObject {
             let world = try GameSetup.makeDemoPark(catalog: catalog)
             let engine = SimulationEngine(world: world)
             self.engine = engine
+
+            #if DEBUG
+            applyScreenshotOptions(to: engine)
+            #endif
+
             refreshSnapshot()
             isReady = true
+
+            #if DEBUG
+            if ScreenshotOptions.isActive {
+                // Diagnostics only. This says the *state* is ready, which happens well before
+                // SwiftUI and SpriteKit have drawn anything — the capture script waits for
+                // RootView instead, because a screenshot needs the frame, not the state.
+                print("PARKLIFE_WARMUP_COMPLETE")
+                fflush(stdout)
+            }
+            #endif
         } catch {
             loadError = String(describing: error)
             logger.error("Could not start a game: \(String(describing: error))")
         }
     }
+
+    #if DEBUG
+    /// Puts the session into the state an automated screenshot run asked for.
+    private func applyScreenshotOptions(to engine: SimulationEngine) {
+        guard ScreenshotOptions.isActive else { return }
+
+        // Run the simulation forward so the park is populated — an empty park makes a poor
+        // screenshot and, more to the point, would not show that any of this works.
+        let days = ScreenshotOptions.warmupDays
+        if days > 0 {
+            // A day at a time, with progress on stdout: if the capture script ever times out
+            // waiting for the ready marker, the log says how far the warm-up actually got
+            // instead of leaving us to guess.
+            let started = Date()
+            for day in 1...days {
+                engine.run(ticks: GameDate.minutesPerDay)
+                if day % 5 == 0 || day == days {
+                    let elapsed = Date().timeIntervalSince(started)
+                    print(String(format: "PARKLIFE_WARMUP day %d/%d (%.1fs)", day, days, elapsed))
+                    fflush(stdout)
+                }
+            }
+            ParkLog.shared.info(.sim, "Screenshot warm-up: \(days) simulated days")
+        }
+        engine.submit(.setSpeed(.paused))
+
+        if let overlay = ScreenshotOptions.overlay {
+            activeOverlay = overlay
+        }
+
+        switch ScreenshotOptions.selection {
+        case "cottage":
+            // Prefer an occupied cottage: it has the most to show.
+            let occupied = engine.world.index.accommodationIDs.first {
+                engine.world.buildings[$0]?.accommodation?.state == .occupied
+            }
+            if let id = occupied ?? engine.world.index.accommodationIDs.first {
+                selection = .building(id)
+            }
+        case "pool":
+            if let id = engine.world.index.facilities(ofKind: .pool).first {
+                selection = .building(id)
+            }
+        case "guest":
+            if let guest = engine.world.guests.items.first(where: { $0.activity != .departed }) {
+                selection = .guest(guest.id)
+            }
+        default:
+            break
+        }
+
+        if let definitionID = ScreenshotOptions.buildDefinition {
+            buildMode = .building(definitionID, .none)
+        }
+    }
+    #endif
 
     func newGame(scenarioID: String) {
         guard let catalog else { return }

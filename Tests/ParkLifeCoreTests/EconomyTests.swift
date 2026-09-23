@@ -52,14 +52,18 @@ final class WorldEconomyTests: XCTestCase {
 
     func testEarningAndSpendingMoveCashAndBooks() throws {
         var world = try TestFixtures.demoPark()
-        let opening = world.cash
+        let openingCash = world.cash
+        // The demo park is *built* through the ledger, so it already carries construction costs.
+        // Measure the movement, not the absolute totals.
+        let openingRevenue = world.ledger.lifetimeRevenue
+        let openingExpenses = world.ledger.lifetimeExpenses
 
         world.earn(Money(euros: 250), category: .food)
         world.spend(Money(euros: 100), category: .wages)
 
-        XCTAssertEqual(world.cash.cents, opening.cents + 25_000 - 10_000)
-        XCTAssertEqual(world.ledger.lifetimeRevenue, Money(euros: 250))
-        XCTAssertEqual(world.ledger.lifetimeExpenses, Money(euros: 100))
+        XCTAssertEqual(world.cash.cents, openingCash.cents + 25_000 - 10_000)
+        XCTAssertEqual(world.ledger.lifetimeRevenue.cents - openingRevenue.cents, 25_000)
+        XCTAssertEqual(world.ledger.lifetimeExpenses.cents - openingExpenses.cents, 10_000)
     }
 
     func testCashIsAlwaysOpeningPlusRevenueMinusExpenses() throws {

@@ -3,15 +3,29 @@ import Foundation
 /// Queue handling shared by every facility, including reception.
 public enum QueueService {
 
+    /// Puts a guest in a facility's queue and sets the activity to match, or turns them away.
+    ///
+    /// This owns *both* halves of the queueing state — membership of the queue and the guest's
+    /// activity — because they have to agree. When the caller set `.queueing` itself, a guest who
+    /// was turned away ended up marked as queueing at a facility they were not queueing at, and
+    /// nothing could ever rescue them: admission only looks at the queue, impatience only scans
+    /// the queue, and the AI only reconsiders idle guests. They stood at the door for the rest of
+    /// the holiday.
+    ///
+    /// Returns `true` if the guest actually joined.
+    @discardableResult
     public static func joinQueue(
         guestID: GuestID,
         buildingID: BuildingID,
         world: inout World,
         context: inout TickContext
-    ) {
+    ) -> Bool {
         guard let instance = world.buildings[buildingID],
               let definition = world.definition(of: instance),
-              let facility = definition.facility else { return }
+              let facility = definition.facility else {
+            turnAway(guestID: guestID, world: &world, tick: context.tick)
+            return false
+        }
 
         let queueLength = instance.facility?.queue.count ?? 0
         guard queueLength < facility.queueCapacity, world.isOperational(buildingID) else {
@@ -25,21 +39,31 @@ public enum QueueService {
                 tick: context.tick,
                 subject: buildingID.raw
             )
-            world.guests.modify(guestID) { guest in
-                guest.activity = .idle
-                guest.decisionCooldownUntilTick = context.tick + 20
-            }
             context.emit(.guestThought(guestID, .queueTooLong))
-            return
+            turnAway(guestID: guestID, world: &world, tick: context.tick)
+            return false
         }
 
+        let isReception = world.index.receptionID == buildingID
         world.buildings.modify(buildingID) { building in
             building.facility?.queue.append(guestID)
         }
         world.guests.modify(guestID) { guest in
+            guest.activity = isReception ? .queueingAtReception : .queueing(buildingID)
             guest.queueJoinedTick = context.tick
             guest.detail = .dormant
             guest.path = nil
+        }
+        return true
+    }
+
+    /// Puts a guest back into circulation after a refused join.
+    private static func turnAway(guestID: GuestID, world: inout World, tick: Tick) {
+        world.guests.modify(guestID) { guest in
+            guest.activity = .idle
+            guest.detail = .reduced
+            guest.path = nil
+            guest.decisionCooldownUntilTick = tick + 20
         }
     }
 

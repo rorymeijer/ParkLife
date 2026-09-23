@@ -72,6 +72,25 @@ public struct Money: Hashable, Comparable, Codable, CustomStringConvertible {
         return "\(sign)€\(absolute / 100).\(String(format: "%02d", absolute % 100))"
     }
 
+    /// Short form for places with a fixed, narrow slot — the HUD in particular.
+    ///
+    /// A park with twenty million in the bank renders as "€2984084.18" in full, which is wider
+    /// than the HUD's cash column and has no spaces to break on, so the layout wrapped it one
+    /// character per line. Thousands and millions are abbreviated; smaller amounts are exact,
+    /// because the difference between €80 and €95 matters when money is tight.
+    public var compactDescription: String {
+        let sign = cents < 0 ? "-" : ""
+        let units = abs(cents) / 100
+        switch units {
+        case 1_000_000...:
+            return "\(sign)€\(String(format: "%.1f", Double(units) / 1_000_000))M"
+        case 10_000...:
+            return "\(sign)€\(String(format: "%.1f", Double(units) / 1_000))k"
+        default:
+            return description
+        }
+    }
+
     // MARK: - Codable (encoded as a bare integer of cents)
 
     public init(from decoder: Decoder) throws {

@@ -218,7 +218,7 @@ ParkLife/
 │       ├── Rendering/             SpriteKit scene, node pools, camera
 │       ├── UI/                    SwiftUI HUD, panels, build bar, debug menu
 │       └── Assets.xcassets        Placeholder art (original, see ASSET POLICY)
-├── Tools/mockup/                  Screenshot generator (design mockups)
+├── Tools/mockup/                  Superseded mockup generator, kept for reference
 ├── docs/                          This documentation + screenshots
 ├── Tools/verify.sh                One command: structure, build, tests, app
 └── .github/workflows/ci.yml       Runs Tools/verify.sh on Linux and macOS
@@ -268,7 +268,9 @@ simulator screenshot **could not be executed here**. Mitigations actually in pla
   balance with a real lexer, `#if`/`#endif` balance, non-exhaustive switches over the project's
   own enums, duplicate type declarations and unresolved type references. It is itself verified
   against fixtures that fail on purpose.
-* Screenshots in `docs/screenshots/` are **design mockups** rendered from the *same* JSON
-  catalog the game loads — they are labelled as mockups, not simulator captures.
+* Screenshots in `docs/screenshots/` are **real simulator captures**, taken by the `screenshots`
+  CI job from a park that has been simulated forward 25-40 days before the first frame. The
+  capture script fails the build when a shot cannot be taken or when the frame is too uniform to
+  be a rendered park, so an empty `docs/screenshots/` is a red build rather than a quiet pass.
 
 This is recorded here rather than glossed over, per Rule 11.

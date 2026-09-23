@@ -89,6 +89,9 @@ final class ParkScene: SKScene {
         if let world = session?.world {
             mapSize = world.tiles.size
             centre(on: world.entranceTile)
+            #if DEBUG
+            applyScreenshotFraming(world: world)
+            #endif
         }
 
         installGestures(on: view)
@@ -104,9 +107,33 @@ final class ParkScene: SKScene {
             session.advance(to: currentTime)
             if let snapshot = session.snapshot {
                 apply(snapshot, session: session)
+                #if DEBUG
+                announceFirstDrawIfNeeded(tileCount: snapshot.tiles.count)
+                #endif
             }
         }
     }
+
+    #if DEBUG
+    private var drawnFrameCount = 0
+
+    /// Tells the capture script that SpriteKit has actually put the park on screen.
+    ///
+    /// SwiftUI draws the HUD and the bars on the first pass, but SpriteView renders on its own
+    /// display link and can be a frame or more behind. On a freshly booted simulator that gap was
+    /// wide enough to photograph a grey, empty map with a perfectly good HUD on top of it — and
+    /// the chrome alone carried enough detail that the blank-frame check waved it through.
+    private func announceFirstDrawIfNeeded(tileCount: Int) {
+        guard ScreenshotOptions.isActive, tileCount > 0, drawnFrameCount < 2 else { return }
+        drawnFrameCount += 1
+        // Announced on the second pass, not the first: `update` runs before the frame it builds
+        // is presented, so one pass only means the nodes exist, not that anyone can see them.
+        if drawnFrameCount == 2 {
+            print("PARKLIFE_SCENE_DRAWN")
+            fflush(stdout)
+        }
+    }
+    #endif
 
     /// Turns a snapshot into sprites. This is the entire simulation→rendering boundary.
     private func apply(_ snapshot: WorldSnapshot, session: GameSession) {
@@ -246,6 +273,23 @@ final class ParkScene: SKScene {
     }
 
     // MARK: - Camera
+
+    #if DEBUG
+    /// Frames the built part of the park rather than the gate, so an automated shot shows the
+    /// park someone actually built.
+    private func applyScreenshotFraming(world: World) {
+        guard ScreenshotOptions.isActive else { return }
+        if let requested = ScreenshotOptions.zoom {
+            zoom = CGFloat(Swift.min(Swift.max(requested, Double(minimumZoom)), Double(maximumZoom)))
+            cameraNode.setScale(zoom)
+        }
+        let origins = world.buildings.items.map(\.origin)
+        guard !origins.isEmpty else { return }
+        let meanX = origins.reduce(0) { $0 + $1.x } / origins.count
+        let meanY = origins.reduce(0) { $0 + $1.y } / origins.count
+        centre(on: GridPoint(x: meanX, y: meanY))
+    }
+    #endif
 
     private func centre(on tile: GridPoint) {
         let screen = projection.project(WorldPoint(tile))

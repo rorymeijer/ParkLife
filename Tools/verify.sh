@@ -80,13 +80,36 @@ fi
 
 # ---------------------------------------------------------------- simulation core
 
+# Keeps the test output so the summary can repeat the failing assertions at the very end.
+#
+# A CI log is read from the tail. With 225 tests over eleven minutes, a failure two hundred lines
+# up is effectively invisible, and working out which test failed cost a whole extra run once.
+CORE_TEST_LOG="${TMPDIR:-/tmp}/parklife-core-tests.$$.log"
+trap 'rm -f "$CORE_TEST_LOG"' EXIT
+
+run_core_tests() {
+    swift test 2>&1 | tee "$CORE_TEST_LOG"
+    return "${PIPESTATUS[0]}"
+}
+
+# Prints just the failing assertions, if any were recorded.
+report_test_failures() {
+    [[ -f "$CORE_TEST_LOG" ]] || return 0
+    local failures
+    failures="$(grep -E ": error: |' failed \(" "$CORE_TEST_LOG" 2>/dev/null || true)"
+    [[ -n "$failures" ]] || return 0
+    printf '\n%sFailing tests%s\n' "$BOLD" "$OFF"
+    printf '%s\n' "$failures" | sed 's/^/  /'
+}
+
+
 if [[ $QUICK -eq 1 ]]; then
     skip "ParkLifeCore build" "--quick"
     skip "ParkLifeCore tests" "--quick"
 elif command -v swift >/dev/null 2>&1; then
     printf '%s  using %s%s\n' "$DIM" "$(swift --version 2>&1 | head -1)" "$OFF"
     step "ParkLifeCore build" swift build
-    step "ParkLifeCore tests" swift test
+    step "ParkLifeCore tests" run_core_tests
 else
     skip "ParkLifeCore build" "no swift toolchain on PATH"
     skip "ParkLifeCore tests" "no swift toolchain on PATH"
@@ -123,6 +146,7 @@ for name in "${SKIPPED[@]:-}"; do [[ -n "$name" ]] && printf '%s  · %s%s\n' "$Y
 for name in "${FAILED[@]:-}";  do [[ -n "$name" ]] && printf '%s  ✗ %s%s\n' "$RED" "$name" "$OFF"; done
 
 if [[ ${#FAILED[@]} -gt 0 ]]; then
+    report_test_failures
     printf '\n%s%d check(s) failed.%s\n' "$RED" "${#FAILED[@]}" "$OFF"
     exit 1
 fi

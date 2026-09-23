@@ -97,13 +97,51 @@ public struct Interests: Codable, Hashable {
 }
 
 /// Need pressures, `0...1`, where higher means more urgent.
+///
+/// The properties are computed over private storage so that *every* write clamps. They used to be
+/// plain stored properties with clamping only in the subscript, which meant the per-tick drift in
+/// `GuestAISystem.advanceNeeds` could push a need past 1.0 and skew happiness and thought
+/// magnitudes. Encoded under the bare names, so the save format is unchanged.
 public struct NeedState: Codable, Hashable {
 
-    public var hunger: Double
-    public var thirst: Double
-    public var tiredness: Double
-    public var boredom: Double
-    public var bladder: Double
+    private var rawHunger: Double
+    private var rawThirst: Double
+    private var rawTiredness: Double
+    private var rawBoredom: Double
+    private var rawBladder: Double
+
+    public var hunger: Double {
+        get { rawHunger }
+        set { rawHunger = clamp01(newValue) }
+    }
+
+    public var thirst: Double {
+        get { rawThirst }
+        set { rawThirst = clamp01(newValue) }
+    }
+
+    public var tiredness: Double {
+        get { rawTiredness }
+        set { rawTiredness = clamp01(newValue) }
+    }
+
+    public var boredom: Double {
+        get { rawBoredom }
+        set { rawBoredom = clamp01(newValue) }
+    }
+
+    public var bladder: Double {
+        get { rawBladder }
+        set { rawBladder = clamp01(newValue) }
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case rawHunger = "hunger"
+        case rawThirst = "thirst"
+        case rawTiredness = "tiredness"
+        case rawBoredom = "boredom"
+        case rawBladder = "bladder"
+    }
 
     public init(
         hunger: Double = 0.1,
@@ -112,11 +150,11 @@ public struct NeedState: Codable, Hashable {
         boredom: Double = 0.2,
         bladder: Double = 0.1
     ) {
-        self.hunger = hunger
-        self.thirst = thirst
-        self.tiredness = tiredness
-        self.boredom = boredom
-        self.bladder = bladder
+        self.rawHunger = clamp01(hunger)
+        self.rawThirst = clamp01(thirst)
+        self.rawTiredness = clamp01(tiredness)
+        self.rawBoredom = clamp01(boredom)
+        self.rawBladder = clamp01(bladder)
     }
 
     public subscript(kind: NeedKind) -> Double {
@@ -130,13 +168,12 @@ public struct NeedState: Codable, Hashable {
             }
         }
         set {
-            let value = clamp01(newValue)
             switch kind {
-            case .hunger: hunger = value
-            case .thirst: thirst = value
-            case .tiredness: tiredness = value
-            case .boredom: boredom = value
-            case .bladder: bladder = value
+            case .hunger: hunger = newValue
+            case .thirst: thirst = newValue
+            case .tiredness: tiredness = newValue
+            case .boredom: boredom = newValue
+            case .bladder: bladder = newValue
             }
         }
     }

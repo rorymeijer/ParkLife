@@ -9,9 +9,9 @@ sounds or logos from any existing product.
 
 ![ParkLife on iPad](docs/screenshots/01-ipad-park-and-bookings.png)
 
-> The images in `docs/screenshots/` are **design mockups**, not simulator captures — see
-> [`docs/screenshots/README.md`](docs/screenshots/README.md) for exactly which parts of them are
-> real project data and which are illustrative.
+> Real captures of the app running in an iOS simulator, taken by CI on every push — the park in
+> them is a simulation that really ran. See
+> [`docs/screenshots/README.md`](docs/screenshots/README.md).
 
 ---
 
@@ -30,16 +30,17 @@ That whole loop runs today, headless, and is covered by tests.
 
 ## Status
 
-**Phase 0 (architecture) complete. Phase 1 (playable vertical slice) complete in the simulation
-core; the app layer is written but has not been compiled** — see [Honest status](#honest-status)
-below and [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full picture.
+**Phase 0 (architecture) and Phase 1 (playable vertical slice) complete and verified by CI.**
+The simulation core builds and its 225 tests pass on Linux; the SwiftUI/SpriteKit app builds on
+macOS and runs in a simulator, which is where the screenshots above come from. See
+[Honest status](#honest-status) below and [`docs/ROADMAP.md`](docs/ROADMAP.md) for the detail.
 
 | Layer | State |
 |---|---|
-| `ParkLifeCore` — simulation, economy, pathfinding, persistence | Implemented, ~10,600 lines, 219 tests across 33 suites |
+| `ParkLifeCore` — simulation, economy, pathfinding, persistence | Implemented, ~10,700 lines, 227 tests across 36 suites, green on Linux |
 | Content catalog — 31 buildings, 4 path types, 6 group archetypes, 3 maps, 3 scenarios, 12 research projects | Implemented as JSON |
-| `App/ParkLife` — SwiftUI + SpriteKit | Implemented, not yet compiled (no Xcode in the development container) |
-| Verification — `./Tools/verify.sh`, run locally and by CI | Configured; CI blocked by account billing, see below |
+| `App/ParkLife` — SwiftUI + SpriteKit | Implemented; builds on macOS in CI and runs in a simulator |
+| Verification — `./Tools/verify.sh`, run locally and by CI | Green: structure, core on Linux, app on macOS, simulator screenshots |
 
 ## Getting started
 
@@ -115,27 +116,25 @@ Read more: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
 ## Honest status
 
 The container this repository was developed in has **no Swift toolchain** (swift.org is blocked by
-the environment's network policy) and no macOS. So:
+the environment's network policy) and no macOS, so nothing here was ever compiled locally. Every
+claim below rests on CI instead, which does have both:
 
-* `swift build` and `swift test` **have not been run here**. The code is written to compile, but
-  nothing has proved it. Run `./Tools/verify.sh --app` on a Mac, or let CI do it, and fix
-  whatever the compiler reports. Until then, treat the build as unverified.
-* **Actions is currently blocked on this account.** Every job across four runs failed within
-  seconds with zero steps executed. GitHub's own annotation on each one says:
-
-  > The job was not started because recent account payments have failed or your spending limit
-  > needs to be increased. Please check the 'Billing & plans' section in your settings.
-
-  The repository is public, so standard GitHub-hosted runners are free for it — but this block is
-  applied **account-wide**, not per repository, so public visibility does not lift it. Fix the
-  payment method or spending limit under Settings → Billing & plans, then re-run the workflow
-  from the Actions tab (it has a `workflow_dispatch` trigger, so no new commit is needed).
+* **The simulation core builds and its tests pass.** `swift build` and `swift test` run on Linux
+  against `swift:6.3.3-noble` — 225 tests, including a 45-day vertical slice that exercises the
+  whole holiday loop from booking to review. This also proves the core really is Foundation-only:
+  it would not compile on Linux otherwise.
+* **The app builds and runs.** The macOS job builds the SwiftUI/SpriteKit target with Xcode, and
+  the screenshots job installs it on a simulator, warms a park up by 25-40 simulated days and
+  captures the screen. The images in `docs/screenshots/` are those captures.
+* **Some things only a picture catches.** Three real defects — blank frames, a cash balance
+  wrapped one character per line, and an overlay laid out wider than the screen — were invisible
+  to all 225 tests and showed up only in the screenshots. They are fixed; the point is that a
+  green test suite is not the same as a working screen.
 * `Tools/check_sources.py` runs everywhere and does what can be done without a type checker:
   brace/paren balance with a real lexer, `#if`/`#endif` balance, non-exhaustive switches over the
   project's own enums, duplicate top-level declarations, references to types that are declared
   nowhere, and catalog JSON validity. It is itself verified against fixtures that fail on
   purpose, and the project passes it clean.
-* The screenshots are mockups, clearly labelled as such.
 
 This is written down rather than glossed over because the alternative — claiming a green build
 nobody ran — is worse than the limitation.

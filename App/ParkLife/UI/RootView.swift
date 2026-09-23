@@ -49,6 +49,10 @@ struct RootView: View {
                     BuildBarView()
                     NavigationBarView(activePanel: $activePanel, isWide: isWide)
                 }
+                // Pinned to the available width so no single control can widen the whole overlay.
+                // When one did, the column was centred at its oversized width and the HUD, the
+                // inspector and the navigation bar were all clipped off both edges at once.
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 12)
                 .padding(.bottom, 8)
             }
@@ -74,6 +78,23 @@ struct RootView: View {
                     }
             }
             .presentationDetents([.medium, .large])
+        }
+        .onAppear {
+            #if DEBUG
+            if let raw = ScreenshotOptions.panel, let panel = ManagementPanel(rawValue: raw) {
+                activePanel = panel
+            }
+            if ScreenshotOptions.isActive {
+                // The SwiftUI chrome is up. This is not the capture signal on its own — the park
+                // itself is drawn by SpriteKit, which reports separately once it has a frame.
+                DispatchQueue.main.async {
+                    DispatchQueue.main.async {
+                        print("PARKLIFE_CHROME_READY")
+                        fflush(stdout)
+                    }
+                }
+            }
+            #endif
         }
         .sheet(isPresented: $showingDebugMenu) {
             NavigationStack {

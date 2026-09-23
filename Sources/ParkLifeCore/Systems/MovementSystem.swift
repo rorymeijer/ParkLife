@@ -93,8 +93,9 @@ public enum MovementSystem: SimulationSystem {
         switch guest.activity {
         case .arriving, .walkingToReception:
             if let receptionID = world.index.receptionID {
+                // `joinQueue` sets the activity itself, so a refused join leaves the guest idle
+                // rather than stood at the desk in a queue they are not in.
                 QueueService.joinQueue(guestID: guestID, buildingID: receptionID, world: &world, context: &context)
-                world.guests.modify(guestID) { $0.activity = .queueingAtReception }
             } else {
                 world.guests.modify(guestID) { $0.activity = .idle }
             }
@@ -104,7 +105,6 @@ public enum MovementSystem: SimulationSystem {
 
         case .walkingTo(let buildingID):
             QueueService.joinQueue(guestID: guestID, buildingID: buildingID, world: &world, context: &context)
-            world.guests.modify(guestID) { $0.activity = .queueing(buildingID) }
 
         case .walkingToExit:
             world.guests.modify(guestID) { stored in
